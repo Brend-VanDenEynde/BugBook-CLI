@@ -1,5 +1,6 @@
 import figlet from 'figlet';
 import readline from 'readline';
+import chalk from 'chalk';
 
 import { handleInstall } from './commands/install';
 import { handleAdd } from './commands/add';
@@ -17,24 +18,24 @@ console.clear();
 
 figlet('BUGBOOK', (err, data) => {
     if (err) {
-        console.log('Something went wrong...');
+        console.log(chalk.red('Something went wrong...'));
         console.dir(err);
         return;
     }
-    console.log(data);
-    console.log('\nBugbook CLI Tool v0.1');
-    console.log('-----------------------');
-    console.log('Welcome to the Bugbook interface.\n');
-    console.log('Type "help" for a list of commands.\n');
+    console.log(chalk.blue(data));
+    console.log(chalk.cyan.bold('\nBugbook CLI Tool v0.1'));
+    console.log(chalk.gray('-----------------------'));
+    console.log(chalk.white('Welcome to the Bugbook interface.\n'));
+    console.log(chalk.yellow('Type "help" for a list of commands.\n'));
 
     const promptLoop = () => {
         const rl = readline.createInterface({
             input: process.stdin,
             output: process.stdout,
-            prompt: 'bugbook> '
+            prompt: chalk.green('bugbook> ')
         });
 
-        rl.question('bugbook> ', async (line) => {
+        rl.question(chalk.green('bugbook> '), async (line) => {
             rl.close(); // Close RL to release stdin for inquirer or next loop
             const args = line.trim().split(' ');
             const command = args[0];
@@ -43,21 +44,21 @@ figlet('BUGBOOK', (err, data) => {
             switch (command) {
                 case 'quit':
                 case 'exit':
-                    console.log('Goodbye!');
+                    console.log(chalk.magenta('Goodbye!'));
                     process.exit(0);
                     break; // Unreachable
                 case 'version':
                     handleVersion();
                     break;
                 case 'help':
-                    console.log('Available commands:');
-                    console.log('  add      - Add a new bug entry');
-                    console.log('  list     - Show the last 5 bugs');
-                    console.log('  search   - Search bugs by ID or text (usage: search [query])');
-                    console.log('  tags     - List all tags with usage counts');
-                    console.log('  new-tag  - Create a new tag');
-                    console.log('  version  - Show version information');
-                    console.log('  quit     - Exit the application');
+                    console.log(chalk.bold('Available commands:'));
+                    console.log(`  ${chalk.cyan('add')}      - Add a new bug entry`);
+                    console.log(`  ${chalk.cyan('list')}     - Show the last 5 bugs`);
+                    console.log(`  ${chalk.cyan('search')}   - Search bugs by ID or text (usage: search [query])`);
+                    console.log(`  ${chalk.cyan('tags')}     - List all tags with usage counts`);
+                    console.log(`  ${chalk.cyan('new-tag')}  - Create a new tag`);
+                    console.log(`  ${chalk.cyan('version')}  - Show version information`);
+                    console.log(`  ${chalk.cyan('quit')}     - Exit the application`);
                     break;
                 case 'tags':
                     handleTags();
@@ -77,7 +78,7 @@ figlet('BUGBOOK', (err, data) => {
                 case '':
                     break;
                 default:
-                    console.log(`Unknown command: '${command}'`);
+                    console.log(chalk.red(`Unknown command: '${command}'`));
                     break;
             }
             // Resume loop

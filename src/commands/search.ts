@@ -1,9 +1,10 @@
 import inquirer from 'inquirer';
+import chalk from 'chalk';
 import { parseBugs, ensureProjectInit } from '../utils/storage';
 
 export const handleSearch = async (argStr: string) => {
     if (!ensureProjectInit()) {
-        console.log('No bugs found.');
+        console.log(chalk.yellow('No bugs found.'));
         return;
     }
 
@@ -14,7 +15,7 @@ export const handleSearch = async (argStr: string) => {
             {
                 type: 'input',
                 name: 'query',
-                message: 'Search (ID or text):'
+                message: chalk.yellow('Search (ID or text):')
             }
         ]);
         searchQuery = answer.query;
@@ -28,12 +29,15 @@ export const handleSearch = async (argStr: string) => {
     );
 
     if (results.length > 0) {
-        console.log(`\nFound ${results.length} match(es):\n`);
+        console.log(chalk.bold.green(`\nFound ${results.length} match(es):\n`));
         results.forEach(r => {
+            console.log(chalk.gray('--------------------------------------------------'));
+            // Highlight the search term?
+            // For now just print.
             console.log(r.content);
-            console.log('---');
         });
+        console.log(chalk.gray('--------------------------------------------------'));
     } else {
-        console.log('No matches found.');
+        console.log(chalk.red('No matches found.'));
     }
 };

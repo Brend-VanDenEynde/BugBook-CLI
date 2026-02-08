@@ -1,14 +1,15 @@
 import fs from 'fs';
 import inquirer from 'inquirer';
+import chalk from 'chalk';
 import { getTags, getBugCounts, TAGS_PATH } from '../utils/storage';
 
 export const handleTags = () => {
     const validTags = getTags();
     const counts = getBugCounts();
-    console.log('\nAvailable Tags:');
+    console.log(chalk.bold.blue('\nAvailable Tags:'));
     validTags.forEach(tag => {
         const count = counts[tag] || 0;
-        console.log(`- ${tag} (${count})`);
+        console.log(`- ${chalk.cyan(tag)} (${chalk.yellow(count)})`);
     });
     console.log('');
 };
@@ -18,7 +19,7 @@ export const handleNewTag = async () => {
         {
             type: 'input',
             name: 'newTag',
-            message: 'Enter new tag name:'
+            message: chalk.yellow('Enter new tag name:')
         }
     ]);
 
@@ -27,9 +28,9 @@ export const handleNewTag = async () => {
         const currentTags = getTags();
         if (!currentTags.includes(tag)) {
             fs.appendFileSync(TAGS_PATH, `${tag}\n`);
-            console.log(`Tag '${tag}' added.`);
+            console.log(chalk.green(`Tag '${tag}' added.`));
         } else {
-            console.log('Tag already exists.');
+            console.log(chalk.red('Tag already exists.'));
         }
     }
 };

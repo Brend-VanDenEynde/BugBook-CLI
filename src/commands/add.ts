@@ -1,29 +1,32 @@
 import fs from 'fs';
 import inquirer from 'inquirer';
+import chalk from 'chalk';
 import { generateId, getTags, TAGS_PATH, BUG_PATH, ensureProjectInit } from '../utils/storage';
 
 export const handleAdd = async () => {
     if (!ensureProjectInit()) {
-        console.log('Error: Bugbook is not installed in this directory.');
-        console.log('Run "bugbook install" first.');
+        console.log(chalk.red('Error: Bugbook is not installed in this directory.'));
+        console.log(`Run "${chalk.cyan('bugbook install')}" first.`);
         return;
     }
+
+    console.log(chalk.bold.blue('\nAdd New Bug Entry'));
 
     const answers = await inquirer.prompt([
         {
             type: 'input',
             name: 'errorMsg',
-            message: 'Bug error message:'
+            message: chalk.yellow('Bug error message:')
         },
         {
             type: 'input',
             name: 'solutionMsg',
-            message: 'Bug solutions:'
+            message: chalk.yellow('Bug solutions:')
         },
         {
             type: 'list',
             name: 'tag',
-            message: 'Select a category/tag:',
+            message: chalk.yellow('Select a category/tag:'),
             choices: [...getTags(), new inquirer.Separator(), 'Create new tag'],
             pageSize: 10
         }
@@ -36,7 +39,7 @@ export const handleAdd = async () => {
             {
                 type: 'input',
                 name: 'newTagName',
-                message: 'Enter new tag name:'
+                message: chalk.yellow('Enter new tag name:')
             }
         ]);
         selectedTag = newTagAnswer.newTagName.trim() || 'General';
@@ -44,16 +47,19 @@ export const handleAdd = async () => {
         // Save new tag if unique
         if (!getTags().includes(selectedTag)) {
             fs.appendFileSync(TAGS_PATH, `${selectedTag}\n`);
+            console.log(chalk.green(`New tag '${selectedTag}' created.`));
         }
     }
 
     const id = generateId();
-    const entry = `\n## [${new Date().toLocaleString()}]\n**ID:** ${id}\n**Category:** ${selectedTag}\n**Error:** ${answers.errorMsg}\n**Solution:** ${answers.solutionMsg}\n---\n`;
+    const timestamp = new Date().toLocaleString();
+    const entry = `\n## [${timestamp}]\n**ID:** ${id}\n**Category:** ${selectedTag}\n**Error:** ${answers.errorMsg}\n**Solution:** ${answers.solutionMsg}\n---\n`;
 
     try {
         fs.appendFileSync(BUG_PATH, entry);
-        console.log(`Bug added successfully! ID: ${id}`);
+        console.log(chalk.green(`\n✔ Bug added successfully!`));
+        console.log(`ID: ${chalk.cyan(id)}`);
     } catch (e) {
-        console.log('Error saving bug entry:', e);
+        console.log(chalk.red('Error saving bug entry:'), e);
     }
 };
