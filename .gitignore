@@ -31,3 +31,7 @@ pnpm-debug.log*
 
 # OS generated files
 Thumbs.db
+
+
+# Bugbook
+.bugbook
