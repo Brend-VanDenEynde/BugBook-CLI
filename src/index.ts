@@ -10,13 +10,71 @@ import { handleList } from './commands/list';
 import { handleSearch } from './commands/search';
 import { handleTags, handleNewTag } from './commands/tags';
 import { handleVersion } from './commands/version';
+import { handleDelete } from './commands/delete';
+import { handleEdit } from './commands/edit';
+import { handleResolve } from './commands/resolve';
 
 // Handle CLI arguments
-if (process.argv.includes('install')) {
-    handleInstall();
-} else {
-    startApp();
+const args = process.argv.slice(2);
+const command = args[0];
+const restArgs = args.slice(1).join(' ');
+
+async function main() {
+    switch (command) {
+        case 'install':
+            handleInstall();
+            break;
+        case 'add':
+            await handleAdd();
+            break;
+        case 'list':
+            handleList();
+            break;
+        case 'search':
+            await handleSearch(restArgs);
+            break;
+        case 'delete':
+            await handleDelete(restArgs);
+            break;
+        case 'edit':
+            await handleEdit(restArgs);
+            break;
+        case 'resolve':
+            await handleResolve(restArgs);
+            break;
+        case 'tags':
+            handleTags();
+            break;
+        case 'new-tag':
+            await handleNewTag();
+            break;
+        case 'version':
+            handleVersion();
+            break;
+        case 'help':
+            console.log(chalk.bold('Available commands:'));
+            console.log(`  ${chalk.cyan('add')}      - Add a new bug entry`);
+            console.log(`  ${chalk.cyan('list')}     - Show the last 5 bugs`);
+            console.log(`  ${chalk.cyan('search')}   - Search bugs by ID or text`);
+            console.log(`  ${chalk.cyan('edit')}     - Edit an existing bug`);
+            console.log(`  ${chalk.cyan('delete')}   - Delete a bug`);
+            console.log(`  ${chalk.cyan('resolve')}  - Toggle Open/Resolved status`);
+            console.log(`  ${chalk.cyan('tags')}     - List all tags with usage counts`);
+            console.log(`  ${chalk.cyan('new-tag')}  - Create a new tag`);
+            console.log(`  ${chalk.cyan('version')}  - Show version information`);
+            console.log(`  ${chalk.cyan('help')}     - Show this help menu`);
+            break;
+        case undefined:
+            startApp();
+            break;
+        default:
+            console.log(chalk.red(`Unknown command: '${command}'`));
+            console.log(`Run "${chalk.cyan('bugbook help')}" for a list of commands.`);
+            break;
+    }
 }
+
+main();
 
 function startApp() {
     if (!fs.existsSync(BUG_DIR)) {
@@ -65,7 +123,10 @@ function startApp() {
                         console.log(chalk.bold('Available commands:'));
                         console.log(`  ${chalk.cyan('add')}      - Add a new bug entry`);
                         console.log(`  ${chalk.cyan('list')}     - Show the last 5 bugs`);
-                        console.log(`  ${chalk.cyan('search')}   - Search bugs by ID or text (usage: search [query])`);
+                        console.log(`  ${chalk.cyan('search')}   - Search bugs by ID or text`);
+                        console.log(`  ${chalk.cyan('edit')}     - Edit an existing bug`);
+                        console.log(`  ${chalk.cyan('delete')}   - Delete a bug`);
+                        console.log(`  ${chalk.cyan('resolve')}  - Toggle Open/Resolved status`);
                         console.log(`  ${chalk.cyan('tags')}     - List all tags with usage counts`);
                         console.log(`  ${chalk.cyan('new-tag')}  - Create a new tag`);
                         console.log(`  ${chalk.cyan('version')}  - Show version information`);
@@ -82,6 +143,15 @@ function startApp() {
                         break;
                     case 'search':
                         await handleSearch(argStr);
+                        break;
+                    case 'delete':
+                        await handleDelete(argStr);
+                        break;
+                    case 'edit':
+                        await handleEdit(argStr);
+                        break;
+                    case 'resolve':
+                        await handleResolve(argStr);
                         break;
                     case 'add':
                         await handleAdd();

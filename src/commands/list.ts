@@ -1,21 +1,20 @@
 import chalk from 'chalk';
-import { parseBugs } from '../utils/storage';
+import { getBugs } from '../utils/storage';
 
 export const handleList = () => {
-    const allBugs = parseBugs();
+    const allBugs = getBugs();
     if (allBugs.length === 0) {
         console.log(chalk.yellow('No bugs found.'));
     } else {
         const last5 = allBugs.slice(-5);
         console.log(chalk.bold.blue(`\nShowing last ${last5.length} entry(s):\n`));
-        last5.forEach(r => {
+        last5.forEach(b => {
             console.log(chalk.gray('--------------------------------------------------'));
-            // Highlight keys if possible, but keep simple for now as content is markdown-ish
-            // Just printing content might be plain, maybe we can colorize keys in the content?
-            // Since content is a single string, we just print it.
-            // Replacing bold markdown markers with colors for display could be cool but might be complex.
-            // Let's just print it for now, maybe add a color to the border.
-            console.log(r.content);
+            const statusIcon = b.status === 'Resolved' ? '✅' : '🔴';
+            console.log(`${chalk.bold('ID:')} ${chalk.cyan(b.id)}  ${statusIcon} ${b.status}`);
+            console.log(`${chalk.bold('Category:')} ${chalk.yellow(b.category)}`);
+            console.log(`${chalk.bold('Error:')} ${b.error}`);
+            console.log(`${chalk.bold('Solution:')} ${b.solution}`);
         });
         console.log(chalk.gray('--------------------------------------------------'));
     }

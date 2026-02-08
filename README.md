@@ -75,6 +75,9 @@ You can also run commands directly without opening the menu:
 | `add` | Report a new bug. You will be prompted for the error message, solution, and tags. |
 | `list` | Show the last 5 reported bugs. |
 | `search [query]` | Search for bugs by ID or text content. |
+| `edit [ID]` | Edit an existing bug's error, solution, or category. |
+| `delete [ID]` | Delete a bug by ID. |
+| `resolve [ID]` | Toggle a bug's status between Open and Resolved. |
 | `tags` | List all available tags and their usage counts. |
 | `new-tag` | Create a new tag category. |
 | `version` | Show the current version of Bugbook. |
