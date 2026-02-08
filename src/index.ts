@@ -59,7 +59,7 @@ async function main() {
             console.log(chalk.bold('Available commands:'));
             console.log(`  ${chalk.cyan('add')}      - Add a new bug entry`);
             console.log(`  ${chalk.cyan('list')}     - Show the last 5 bugs`);
-            console.log(`  ${chalk.cyan('search')}   - Search bugs by ID or text`);
+            console.log(`  ${chalk.cyan('search')}   - Search bugs (fuzzy) by ID or text`);
             console.log(`  ${chalk.cyan('edit')}     - Edit an existing bug`);
             console.log(`  ${chalk.cyan('delete')}   - Delete a bug`);
             console.log(`  ${chalk.cyan('resolve')}  - Toggle Open/Resolved status`);
@@ -128,7 +128,7 @@ function startApp() {
                         console.log(chalk.bold('Available commands:'));
                         console.log(`  ${chalk.cyan('add')}      - Add a new bug entry`);
                         console.log(`  ${chalk.cyan('list')}     - Show the last 5 bugs`);
-                        console.log(`  ${chalk.cyan('search')}   - Search bugs by ID or text`);
+                        console.log(`  ${chalk.cyan('search')}   - Search bugs (fuzzy) by ID or text`);
                         console.log(`  ${chalk.cyan('edit')}     - Edit an existing bug`);
                         console.log(`  ${chalk.cyan('delete')}   - Delete a bug`);
                         console.log(`  ${chalk.cyan('resolve')}  - Toggle Open/Resolved status`);
