@@ -1,12 +1,36 @@
-#!/usr/bin/env node
 import figlet from 'figlet';
 import readline from 'readline';
 import fs from 'fs';
 import path from 'path';
+import inquirer from 'inquirer';
 
 const BUG_DIR = '.bugbook';
 const BUG_FILE = 'bugs.md';
+const TAGS_FILE = 'tags.md';
 const BUG_PATH = path.join(process.cwd(), BUG_DIR, BUG_FILE);
+const TAGS_PATH = path.join(process.cwd(), BUG_DIR, TAGS_FILE);
+
+const getTags = (): string[] => {
+    if (fs.existsSync(TAGS_PATH)) {
+        const fileContent = fs.readFileSync(TAGS_PATH, 'utf-8');
+        return fileContent.split('\n').map(t => t.trim()).filter(t => t.length > 0);
+    }
+    return ['General'];
+};
+
+const getBugCounts = (): Record<string, number> => {
+    const counts: Record<string, number> = {};
+    if (fs.existsSync(BUG_PATH)) {
+        const fileContent = fs.readFileSync(BUG_PATH, 'utf-8');
+        const regex = /\*\*Category:\*\* (.*)/g;
+        let match;
+        while ((match = regex.exec(fileContent)) !== null) {
+            const tag = match[1].trim();
+            counts[tag] = (counts[tag] || 0) + 1;
+        }
+    }
+    return counts;
+};
 
 // Handle CLI arguments
 if (process.argv.includes('install')) {
@@ -17,6 +41,10 @@ if (process.argv.includes('install')) {
     if (!fs.existsSync(BUG_PATH)) {
         fs.writeFileSync(BUG_PATH, '# Bugbook Storage\n\n');
         console.log(`Created file: ${BUG_PATH}`);
+    }
+    if (!fs.existsSync(TAGS_PATH)) {
+        fs.writeFileSync(TAGS_PATH, 'General\nFrontend\nBackend\n');
+        console.log(`Created file: ${TAGS_PATH}`);
     } else {
         console.log('Bugbook is already installed in this directory.');
     }
@@ -37,62 +65,136 @@ figlet('BUGBOOK', (err, data) => {
     console.log('Welcome to the Bugbook interface.\n');
     console.log('Type "help" for a list of commands.\n');
 
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-        prompt: 'bugbook> '
-    });
 
-    rl.prompt();
 
-    rl.on('line', (line) => {
-        const command = line.trim();
+    const promptLoop = () => {
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+            prompt: 'bugbook> '
+        });
 
-        switch (command) {
-            case 'quit':
-                console.log('Goodbye!');
-                process.exit(0);
-                break;
-            case 'version':
-                console.log('v0.1');
-                break;
-            case 'help':
-                console.log('Available commands:');
-                console.log('  add      - Add a new bug entry');
-                console.log('  version  - Show version information');
-                console.log('  quit     - Exit the application');
-                break;
-            case 'add':
-                if (!fs.existsSync(BUG_PATH)) {
-                    console.log('Error: Bugbook is not installed in this directory.');
-                    console.log('Run "bugbook install" first.');
+        rl.question('bugbook> ', async (line) => {
+            rl.close(); // Close RL to release stdin for inquirer or next loop
+            const command = line.trim();
+
+            switch (command) {
+                case 'quit':
+                    console.log('Goodbye!');
+                    process.exit(0);
                     break;
-                }
-
-                rl.question('Bug error message: ', (errorMsg) => {
-                    rl.question('Bug solutions: ', (solutionMsg) => {
-                        const entry = `\n## [${new Date().toLocaleString()}]\n**Error:** ${errorMsg}\n**Solution:** ${solutionMsg}\n---\n`;
-
-                        try {
-                            fs.appendFileSync(BUG_PATH, entry);
-                            console.log('Bug added successfully!');
-                        } catch (e) {
-                            console.log('Error saving bug entry:', e);
-                        }
-
-                        rl.prompt();
+                case 'version':
+                    console.log('v0.1');
+                    promptLoop();
+                    break;
+                case 'help':
+                    console.log('Available commands:');
+                    console.log('  add      - Add a new bug entry');
+                    console.log('  tags     - List all tags with usage counts');
+                    console.log('  new-tag  - Create a new tag');
+                    console.log('  version  - Show version information');
+                    console.log('  quit     - Exit the application');
+                    promptLoop();
+                    break;
+                case 'tags':
+                    const validTags = getTags();
+                    const counts = getBugCounts();
+                    console.log('\nAvailable Tags:');
+                    validTags.forEach(tag => {
+                        const count = counts[tag] || 0;
+                        console.log(`- ${tag} (${count})`);
                     });
-                });
-                return; // Return to avoid double prompt from the main loop
-            case '':
-                break;
-            default:
-                console.log(`Unknown command: '${command}'`);
-                break;
-        }
-        rl.prompt();
-    }).on('close', () => {
-        console.log('Goodbye!');
-        process.exit(0);
-    });
+                    console.log('');
+                    promptLoop();
+                    break;
+                case 'new-tag':
+                    const { newTag } = await inquirer.prompt([
+                        {
+                            type: 'input',
+                            name: 'newTag',
+                            message: 'Enter new tag name:'
+                        }
+                    ]);
+
+                    const tag = newTag.trim();
+                    if (tag) {
+                        const currentTags = getTags();
+                        if (!currentTags.includes(tag)) {
+                            fs.appendFileSync(TAGS_PATH, `${tag}\n`);
+                            console.log(`Tag '${tag}' added.`);
+                        } else {
+                            console.log('Tag already exists.');
+                        }
+                    }
+                    promptLoop();
+                    break;
+                case 'add':
+                    if (!fs.existsSync(BUG_PATH)) {
+                        console.log('Error: Bugbook is not installed in this directory.');
+                        console.log('Run "bugbook install" first.');
+                        promptLoop();
+                        break;
+                    }
+
+                    const answers = await inquirer.prompt([
+                        {
+                            type: 'input',
+                            name: 'errorMsg',
+                            message: 'Bug error message:'
+                        },
+                        {
+                            type: 'input',
+                            name: 'solutionMsg',
+                            message: 'Bug solutions:'
+                        },
+                        {
+                            type: 'list',
+                            name: 'tag',
+                            message: 'Select a category/tag:',
+                            choices: [...getTags(), new inquirer.Separator(), 'Create new tag'],
+                            pageSize: 10
+                        }
+                    ]);
+
+                    let selectedTag = answers.tag;
+
+                    if (selectedTag === 'Create new tag') {
+                        const newTagAnswer = await inquirer.prompt([
+                            {
+                                type: 'input',
+                                name: 'newTagName',
+                                message: 'Enter new tag name:'
+                            }
+                        ]);
+                        selectedTag = newTagAnswer.newTagName.trim() || 'General';
+
+                        // Save new tag if unique
+                        if (!getTags().includes(selectedTag)) {
+                            fs.appendFileSync(TAGS_PATH, `${selectedTag}\n`);
+                        }
+                    }
+
+                    const entry = `\n## [${new Date().toLocaleString()}]\n**Category:** ${selectedTag}\n**Error:** ${answers.errorMsg}\n**Solution:** ${answers.solutionMsg}\n---\n`;
+
+                    try {
+                        fs.appendFileSync(BUG_PATH, entry);
+                        console.log('Bug added successfully!');
+                    } catch (e) {
+                        console.log('Error saving bug entry:', e);
+                    }
+
+                    promptLoop();
+                    break;
+                case '':
+                    promptLoop();
+                    break;
+                default:
+                    console.log(`Unknown command: '${command}'`);
+                    promptLoop();
+                    break;
+            }
+        });
+    };
+
+    promptLoop();
 });
