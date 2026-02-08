@@ -1,5 +1,6 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
+import Fuse from 'fuse.js';
 import { getBugs, ensureProjectInit } from '../utils/storage';
 
 export const handleSearch = async (argStr: string) => {
@@ -21,14 +22,24 @@ export const handleSearch = async (argStr: string) => {
         searchQuery = answer.query;
     }
 
-    const lowerQuery = searchQuery.toLowerCase();
     const bugs = getBugs();
-    const results = bugs.filter(b =>
-        b.id.toLowerCase() === lowerQuery ||
-        b.error.toLowerCase().includes(lowerQuery) ||
-        b.solution.toLowerCase().includes(lowerQuery) ||
-        b.category.toLowerCase().includes(lowerQuery)
-    );
+
+    const fuse = new Fuse(bugs, {
+        keys: ['id', 'error', 'solution', 'category'],
+        threshold: 0.4, // Adjust for fuzziness (0.0 = exact, 1.0 = match anything)
+        includeScore: true
+    });
+
+    const fuseResults = fuse.search(searchQuery);
+    const results = fuseResults.map(r => r.item);
+
+    // Fallback for empty query or exact match if needed (though fuse handles empty query poorly, usually returns empty)
+    // If query is empty string, Fuse returns empty array.
+    // But inquirer ensures we get a string. If user just hits enter on prompt:
+    if (searchQuery.trim() === '') {
+        console.log(chalk.yellow('Please enter a search term.'));
+        return;
+    }
 
     if (results.length > 0) {
         console.log(chalk.bold.green(`\nFound ${results.length} match(es):\n`));
@@ -38,7 +49,6 @@ export const handleSearch = async (argStr: string) => {
             console.log(`${chalk.bold('ID:')} ${chalk.cyan(b.id)}  ${statusIcon} ${b.status}`);
             console.log(`${chalk.bold('Category:')} ${chalk.yellow(b.category)}`);
             console.log(`${chalk.bold('Error:')} ${b.error}`);
-            // console.log(`${chalk.bold('Solution:')} ${b.solution}`); // Optional: maybe too long? No, show it.
             console.log(`${chalk.bold('Solution:')} ${b.solution}`);
         });
         console.log(chalk.gray('--------------------------------------------------'));

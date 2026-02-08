@@ -13,6 +13,7 @@ import { handleVersion } from './commands/version';
 import { handleDelete } from './commands/delete';
 import { handleEdit } from './commands/edit';
 import { handleResolve } from './commands/resolve';
+import { handleStats } from './commands/stats';
 
 // Handle CLI arguments
 const args = process.argv.slice(2);
@@ -42,6 +43,9 @@ async function main() {
         case 'resolve':
             await handleResolve(restArgs);
             break;
+        case 'stats':
+            await handleStats();
+            break;
         case 'tags':
             handleTags();
             break;
@@ -59,6 +63,7 @@ async function main() {
             console.log(`  ${chalk.cyan('edit')}     - Edit an existing bug`);
             console.log(`  ${chalk.cyan('delete')}   - Delete a bug`);
             console.log(`  ${chalk.cyan('resolve')}  - Toggle Open/Resolved status`);
+            console.log(`  ${chalk.cyan('stats')}    - Show bug statistics`);
             console.log(`  ${chalk.cyan('tags')}     - List all tags with usage counts`);
             console.log(`  ${chalk.cyan('new-tag')}  - Create a new tag`);
             console.log(`  ${chalk.cyan('version')}  - Show version information`);
@@ -127,6 +132,7 @@ function startApp() {
                         console.log(`  ${chalk.cyan('edit')}     - Edit an existing bug`);
                         console.log(`  ${chalk.cyan('delete')}   - Delete a bug`);
                         console.log(`  ${chalk.cyan('resolve')}  - Toggle Open/Resolved status`);
+                        console.log(`  ${chalk.cyan('stats')}    - Show bug statistics`);
                         console.log(`  ${chalk.cyan('tags')}     - List all tags with usage counts`);
                         console.log(`  ${chalk.cyan('new-tag')}  - Create a new tag`);
                         console.log(`  ${chalk.cyan('version')}  - Show version information`);
@@ -152,6 +158,9 @@ function startApp() {
                         break;
                     case 'resolve':
                         await handleResolve(argStr);
+                        break;
+                    case 'stats':
+                        await handleStats();
                         break;
                     case 'add':
                         await handleAdd();

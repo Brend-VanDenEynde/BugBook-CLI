@@ -1,6 +1,6 @@
 {
   "name": "bugbook",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
   "main": "dist/index.js",
   "bin": {
@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@types/inquirer": "^9.0.9",
+    "fuse.js": "^7.1.0",
     "inquirer": "^8.2.7"
   }
 }
