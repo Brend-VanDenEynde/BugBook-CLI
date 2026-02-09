@@ -1,10 +1,10 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { getBugs, saveBugs, getTags, ensureProjectInit, sanitizeInput, addTag, sanitizeTagName, BUG_PREVIEW_LENGTH } from '../utils/storage';
+import { getBugs, saveBugs, getTags, ensureProjectInit, sanitizeInput, addTag, sanitizeTagName, BUG_PREVIEW_LENGTH, MAX_INPUT_LENGTH } from '../utils/storage';
 
 export const handleEdit = async (argStr: string) => {
     if (!ensureProjectInit()) {
-        console.log(chalk.red('Bugbook is not initialized.'));
+        console.log(chalk.red('Error: Bugbook is not initialized.'));
         return;
     }
 
@@ -12,7 +12,7 @@ export const handleEdit = async (argStr: string) => {
     const bugs = getBugs();
 
     if (bugs.length === 0) {
-        console.log(chalk.yellow('No bugs found.'));
+        console.log(chalk.white('No bugs found.'));
         return;
     }
 
@@ -26,7 +26,7 @@ export const handleEdit = async (argStr: string) => {
             {
                 type: 'list',
                 name: 'selectedId',
-                message: chalk.yellow('Select a bug to edit:'),
+                message: 'Select a bug to edit:',
                 choices,
                 pageSize: 10
             }
@@ -37,22 +37,21 @@ export const handleEdit = async (argStr: string) => {
     const bug = bugs.find(b => b.id.toLowerCase() === bugId.toLowerCase());
 
     if (!bug) {
-        console.log(chalk.red(`Bug with ID '${bugId}' not found.`));
+        console.log(chalk.red(`Error: Bug with ID '${bugId}' not found.`));
         return;
     }
 
-    // Interactive edit prompt
     const answers = await inquirer.prompt([
         {
             type: 'list',
             name: 'field',
-            message: chalk.yellow('Which field do you want to edit?'),
+            message: 'Which field do you want to edit?',
             choices: ['Error Message', 'Solution', 'Category', 'Cancel']
         }
     ]);
 
     if (answers.field === 'Cancel') {
-        console.log(chalk.yellow('Edit cancelled.'));
+        console.log(chalk.white('Edit cancelled.'));
         return;
     }
 
@@ -61,7 +60,7 @@ export const handleEdit = async (argStr: string) => {
             {
                 type: 'list',
                 name: 'tag',
-                message: chalk.yellow('Select new category:'),
+                message: 'Select new category:',
                 choices: [...getTags(), new inquirer.Separator(), 'Create new tag']
             }
         ]);
@@ -83,7 +82,7 @@ export const handleEdit = async (argStr: string) => {
                 newTag = sanitized;
             } else {
                 newTag = 'General';
-                console.log(chalk.yellow('Invalid tag name, using "General".'));
+                console.log(chalk.white('Invalid tag name, using "General".'));
             }
         }
         bug.category = newTag;
@@ -93,8 +92,17 @@ export const handleEdit = async (argStr: string) => {
             {
                 type: 'input',
                 name: 'val',
-                message: chalk.yellow('New error message:'),
-                default: bug.error
+                message: 'New error message:',
+                default: bug.error,
+                validate: (input: string) => {
+                    if (!input.trim()) {
+                        return 'Error message cannot be empty.';
+                    }
+                    if (input.length > MAX_INPUT_LENGTH) {
+                        return `Input too long. Maximum ${MAX_INPUT_LENGTH} characters.`;
+                    }
+                    return true;
+                }
             }
         ]);
         bug.error = sanitizeInput(errAnswer.val);
@@ -104,8 +112,14 @@ export const handleEdit = async (argStr: string) => {
             {
                 type: 'input',
                 name: 'val',
-                message: chalk.yellow('New solution:'),
-                default: bug.solution
+                message: 'New solution:',
+                default: bug.solution,
+                validate: (input: string) => {
+                    if (input.length > MAX_INPUT_LENGTH) {
+                        return `Input too long. Maximum ${MAX_INPUT_LENGTH} characters.`;
+                    }
+                    return true;
+                }
             }
         ]);
         bug.solution = sanitizeInput(solAnswer.val);

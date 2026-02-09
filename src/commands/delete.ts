@@ -4,7 +4,7 @@ import { getBugs, saveBugs, ensureProjectInit, BUG_PREVIEW_LENGTH } from '../uti
 
 export const handleDelete = async (argStr: string) => {
     if (!ensureProjectInit()) {
-        console.log(chalk.red('Bugbook is not initialized.'));
+        console.log(chalk.red('Error: Bugbook is not initialized.'));
         return;
     }
 
@@ -12,12 +12,11 @@ export const handleDelete = async (argStr: string) => {
     const bugs = getBugs();
 
     if (bugs.length === 0) {
-        console.log(chalk.yellow('No bugs to delete.'));
+        console.log(chalk.white('No bugs to delete.'));
         return;
     }
 
     if (!bugId) {
-        // Interactive selection
         const choices = bugs.map(b => ({
             name: `[${b.id}] ${b.error.substring(0, BUG_PREVIEW_LENGTH)}${b.error.length > BUG_PREVIEW_LENGTH ? '...' : ''}`,
             value: b.id
@@ -27,7 +26,7 @@ export const handleDelete = async (argStr: string) => {
             {
                 type: 'list',
                 name: 'selectedId',
-                message: chalk.yellow('Select a bug to delete:'),
+                message: 'Select a bug to delete:',
                 choices,
                 pageSize: 10
             }
@@ -38,16 +37,15 @@ export const handleDelete = async (argStr: string) => {
     const bugIndex = bugs.findIndex(b => b.id.toLowerCase() === bugId.toLowerCase());
 
     if (bugIndex === -1) {
-        console.log(chalk.red(`Bug with ID '${bugId}' not found.`));
+        console.log(chalk.red(`Error: Bug with ID '${bugId}' not found.`));
         return;
     }
 
-    // Confirm deletion
     const { confirm } = await inquirer.prompt([
         {
             type: 'confirm',
             name: 'confirm',
-            message: chalk.red(`Are you sure you want to delete bug [${bugs[bugIndex].id}]?`),
+            message: `Are you sure you want to delete bug [${bugs[bugIndex].id}]?`,
             default: false
         }
     ]);
@@ -57,6 +55,6 @@ export const handleDelete = async (argStr: string) => {
         saveBugs(bugs);
         console.log(chalk.green(`Bug [${bugId}] deleted successfully.`));
     } else {
-        console.log(chalk.yellow('Deletion cancelled.'));
+        console.log(chalk.white('Deletion cancelled.'));
     }
 };

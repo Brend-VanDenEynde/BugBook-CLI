@@ -5,10 +5,10 @@ import { getTags, getBugCounts, addTag, sanitizeTagName } from '../utils/storage
 export const handleTags = () => {
     const validTags = getTags();
     const counts = getBugCounts();
-    console.log(chalk.bold.blue('\nAvailable Tags:'));
+    console.log(chalk.bold.white('\nAvailable Tags:'));
     validTags.forEach(tag => {
         const count = counts[tag] || 0;
-        console.log(`- ${chalk.cyan(tag)} (${chalk.yellow(count)})`);
+        console.log(`  - ${tag} (${count})`);
     });
     console.log('');
 };
@@ -18,13 +18,13 @@ export const handleNewTag = async () => {
         {
             type: 'input',
             name: 'newTag',
-            message: chalk.yellow('Enter new tag name:')
+            message: 'Enter new tag name:'
         }
     ]);
 
     const sanitized = sanitizeTagName(newTag);
     if (!sanitized) {
-        console.log(chalk.red('Invalid tag name. Use only letters, numbers, spaces, and hyphens.'));
+        console.log(chalk.red('Error: Invalid tag name. Use only letters, numbers, spaces, and hyphens.'));
         return;
     }
 
@@ -32,6 +32,6 @@ export const handleNewTag = async () => {
     if (result.success) {
         console.log(chalk.green(result.message));
     } else {
-        console.log(chalk.red(result.message));
+        console.log(chalk.red(`Error: ${result.message}`));
     }
 };

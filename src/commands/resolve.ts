@@ -4,7 +4,7 @@ import { getBugs, saveBugs, ensureProjectInit, BUG_PREVIEW_LENGTH } from '../uti
 
 export const handleResolve = async (argStr: string) => {
     if (!ensureProjectInit()) {
-        console.log(chalk.red('Bugbook is not initialized.'));
+        console.log(chalk.red('Error: Bugbook is not initialized.'));
         return;
     }
 
@@ -12,12 +12,11 @@ export const handleResolve = async (argStr: string) => {
     const bugs = getBugs();
 
     if (bugs.length === 0) {
-        console.log(chalk.yellow('No bugs found.'));
+        console.log(chalk.white('No bugs found.'));
         return;
     }
 
     if (!bugId) {
-        // Interactive selection
         const choices = bugs.map(b => ({
             name: `[${b.id}] ${b.status === 'Resolved' ? '✅' : '🔴'} ${b.error.substring(0, BUG_PREVIEW_LENGTH)}${b.error.length > BUG_PREVIEW_LENGTH ? '...' : ''}`,
             value: b.id
@@ -27,7 +26,7 @@ export const handleResolve = async (argStr: string) => {
             {
                 type: 'list',
                 name: 'selectedId',
-                message: chalk.yellow('Select a bug to resolve/re-open:'),
+                message: 'Select a bug to resolve/re-open:',
                 choices,
                 pageSize: 10
             }
@@ -38,11 +37,10 @@ export const handleResolve = async (argStr: string) => {
     const bug = bugs.find(b => b.id.toLowerCase() === bugId.toLowerCase());
 
     if (!bug) {
-        console.log(chalk.red(`Bug with ID '${bugId}' not found.`));
+        console.log(chalk.red(`Error: Bug with ID '${bugId}' not found.`));
         return;
     }
 
-    // Toggle status
     const newStatus = bug.status === 'Open' ? 'Resolved' : 'Open';
     bug.status = newStatus;
     saveBugs(bugs);

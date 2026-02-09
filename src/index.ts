@@ -17,35 +17,31 @@ import { handleEdit } from './commands/edit';
 import { handleResolve } from './commands/resolve';
 import { handleStats } from './commands/stats';
 
-// Shared help text printer
 const printHelp = (includeQuit = false) => {
-    console.log(chalk.bold('Available commands:'));
-    console.log(`  ${chalk.cyan('add')}      - Add a new bug entry`);
-    console.log(`  ${chalk.cyan('list')}     - Show the last 5 bugs`);
-    console.log(`  ${chalk.cyan('search')}   - Search bugs (fuzzy) by ID or text`);
-    console.log(`  ${chalk.cyan('edit')}     - Edit an existing bug`);
-    console.log(`  ${chalk.cyan('delete')}   - Delete a bug`);
-    console.log(`  ${chalk.cyan('resolve')}  - Toggle Open/Resolved status`);
-    console.log(`  ${chalk.cyan('stats')}    - Show bug statistics`);
-    console.log(`  ${chalk.cyan('tags')}     - List all tags with usage counts`);
-    console.log(`  ${chalk.cyan('new-tag')}  - Create a new tag`);
-    console.log(`  ${chalk.cyan('version')}  - Show version information`);
+    console.log(chalk.bold.white('Available commands:'));
+    console.log(`  ${chalk.white('add')}      - Add a new bug entry`);
+    console.log(`  ${chalk.white('list')}     - Show the last 5 bugs`);
+    console.log(`  ${chalk.white('search')}   - Search bugs (fuzzy) by ID or text`);
+    console.log(`  ${chalk.white('edit')}     - Edit an existing bug`);
+    console.log(`  ${chalk.white('delete')}   - Delete a bug`);
+    console.log(`  ${chalk.white('resolve')}  - Toggle Open/Resolved status`);
+    console.log(`  ${chalk.white('stats')}    - Show bug statistics`);
+    console.log(`  ${chalk.white('tags')}     - List all tags with usage counts`);
+    console.log(`  ${chalk.white('new-tag')}  - Create a new tag`);
+    console.log(`  ${chalk.white('version')}  - Show version information`);
     if (includeQuit) {
-        console.log(`  ${chalk.cyan('quit')}     - Exit the application`);
+        console.log(`  ${chalk.white('quit')}     - Exit the application`);
     } else {
-        console.log(`  ${chalk.cyan('help')}     - Show this help menu`);
+        console.log(`  ${chalk.white('help')}     - Show this help menu`);
     }
 };
 
-/**
- * Unified command handler to avoid code duplication
- */
 const executeCommand = async (command: string, argStr: string, isInteractive: boolean): Promise<boolean> => {
     switch (command) {
         case 'quit':
         case 'exit':
             if (isInteractive) {
-                console.log(chalk.magenta('Goodbye!'));
+                console.log(chalk.white('Goodbye!'));
                 process.exit(0);
             }
             return false;
@@ -92,13 +88,12 @@ const executeCommand = async (command: string, argStr: string, isInteractive: bo
         default:
             console.log(chalk.red(`Unknown command: '${command}'`));
             if (!isInteractive) {
-                console.log(`Run "${chalk.cyan('bugbook help')}" for a list of commands.`);
+                console.log(`Run "bugbook help" for a list of commands.`);
             }
             return false;
     }
 };
 
-// Handle CLI arguments
 const args = process.argv.slice(2);
 const command = args[0];
 const restArgs = args.slice(1).join(' ');
@@ -116,7 +111,7 @@ main();
 function startApp() {
     if (!fs.existsSync(BUG_DIR)) {
         console.log(chalk.red('\nBugbook is not installed in this directory.'));
-        console.log(chalk.yellow('Please run "bugbook install" first to set up.\n'));
+        console.log(chalk.white('Please run "bugbook install" first to set up.\n'));
         process.exit(1);
     }
 
@@ -128,20 +123,20 @@ function startApp() {
             console.dir(err);
             return;
         }
-        console.log(chalk.blue(data));
-        console.log(chalk.cyan.bold(`\nBugbook CLI Tool v${packageJson.version}`));
-        console.log(chalk.gray('-----------------------'));
+        console.log(chalk.white(data));
+        console.log(chalk.bold.white(`\nBugbook CLI Tool v${packageJson.version}`));
+        console.log(chalk.white('-----------------------'));
         console.log(chalk.white('Welcome to the Bugbook interface.\n'));
-        console.log(chalk.yellow('Type "help" for a list of commands.\n'));
+        console.log(chalk.white('Type "help" for a list of commands.\n'));
 
         const promptLoop = () => {
             const rl = readline.createInterface({
                 input: process.stdin,
                 output: process.stdout,
-                prompt: chalk.green('bugbook> ')
+                prompt: chalk.white('bugbook> ')
             });
 
-            rl.question(chalk.green('bugbook> '), async (line) => {
+            rl.question(chalk.white('bugbook> '), async (line) => {
                 rl.close();
                 const parts = line.trim().split(' ');
                 const cmd = parts[0];

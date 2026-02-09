@@ -1,31 +1,46 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { generateId, getTags, ensureProjectInit, addBug, Bug, sanitizeInput, addTag, sanitizeTagName } from '../utils/storage';
+import { generateId, getTags, ensureProjectInit, addBug, Bug, sanitizeInput, addTag, sanitizeTagName, MAX_INPUT_LENGTH } from '../utils/storage';
 
 export const handleAdd = async () => {
     if (!ensureProjectInit()) {
         console.log(chalk.red('Error: Bugbook is not installed in this directory.'));
-        console.log(`Run "${chalk.cyan('bugbook install')}" first.`);
+        console.log(chalk.white('Run "bugbook install" first.'));
         return;
     }
 
-    console.log(chalk.bold.blue('\nAdd New Bug Entry'));
+    console.log(chalk.bold.white('\nAdd New Bug Entry'));
 
     const answers = await inquirer.prompt([
         {
             type: 'input',
             name: 'errorMsg',
-            message: chalk.yellow('Bug error message:')
+            message: 'Bug error message:',
+            validate: (input: string) => {
+                if (!input.trim()) {
+                    return 'Error message cannot be empty.';
+                }
+                if (input.length > MAX_INPUT_LENGTH) {
+                    return `Input too long. Maximum ${MAX_INPUT_LENGTH} characters.`;
+                }
+                return true;
+            }
         },
         {
             type: 'input',
             name: 'solutionMsg',
-            message: chalk.yellow('Bug solutions:')
+            message: 'Bug solution:',
+            validate: (input: string) => {
+                if (input.length > MAX_INPUT_LENGTH) {
+                    return `Input too long. Maximum ${MAX_INPUT_LENGTH} characters.`;
+                }
+                return true;
+            }
         },
         {
             type: 'list',
             name: 'tag',
-            message: chalk.yellow('Select a category/tag:'),
+            message: 'Select a category/tag:',
             choices: [...getTags(), new inquirer.Separator(), 'Create new tag'],
             pageSize: 10
         }
@@ -38,7 +53,7 @@ export const handleAdd = async () => {
             {
                 type: 'input',
                 name: 'newTagName',
-                message: chalk.yellow('Enter new tag name:')
+                message: 'Enter new tag name:'
             }
         ]);
 
@@ -51,7 +66,7 @@ export const handleAdd = async () => {
             selectedTag = sanitized;
         } else {
             selectedTag = 'General';
-            console.log(chalk.yellow('Invalid tag name, using "General".'));
+            console.log(chalk.white('Invalid tag name, using "General".'));
         }
     }
 
@@ -67,7 +82,7 @@ export const handleAdd = async () => {
     try {
         addBug(newBug);
         console.log(chalk.green(`\n✔ Bug added successfully!`));
-        console.log(`ID: ${chalk.cyan(newBug.id)}`);
+        console.log(chalk.white(`ID: ${newBug.id}`));
     } catch (e) {
         console.log(chalk.red('Error saving bug entry:'), e);
     }

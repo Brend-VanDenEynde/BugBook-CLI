@@ -3,7 +3,7 @@ import { getBugs, ensureProjectInit } from '../utils/storage';
 
 export const handleStats = () => {
     if (!ensureProjectInit()) {
-        console.log(chalk.yellow('No bugs found (project not initialized).'));
+        console.log(chalk.red('Error: Project not initialized.'));
         return;
     }
 
@@ -11,7 +11,7 @@ export const handleStats = () => {
     const totalBugs = bugs.length;
 
     if (totalBugs === 0) {
-        console.log(chalk.yellow('No bugs recorded yet.'));
+        console.log(chalk.white('No bugs recorded yet.'));
         return;
     }
 
@@ -27,22 +27,22 @@ export const handleStats = () => {
     const sortedCategories = Object.entries(categoryCounts)
         .sort(([, a], [, b]) => b - a);
 
-    console.log(chalk.bold.blue('\nBugbook Statistics\n'));
-    console.log(chalk.gray('--------------------------------------------------'));
+    console.log(chalk.bold.white('\nBugbook Statistics\n'));
+    console.log(chalk.white('--------------------------------------------------'));
 
-    console.log(`${chalk.bold('Total Bugs:')}     ${chalk.white(totalBugs)}`);
-    console.log(`${chalk.bold('Open:')}           ${chalk.red(openBugs)}`);
-    console.log(`${chalk.bold('Resolved:')}       ${chalk.green(resolvedBugs)}`);
+    console.log(`${chalk.bold.white('Total Bugs:')}     ${totalBugs}`);
+    console.log(`${chalk.bold.white('Open:')}           ${openBugs}`);
+    console.log(`${chalk.bold.white('Resolved:')}       ${resolvedBugs}`);
 
-    console.log(chalk.gray('--------------------------------------------------'));
-    console.log(chalk.bold.cyan('Top Categories:'));
+    console.log(chalk.white('--------------------------------------------------'));
+    console.log(chalk.bold.white('Top Categories:'));
 
     if (sortedCategories.length === 0) {
-        console.log(chalk.gray('  No categories found.'));
+        console.log(chalk.white('  No categories found.'));
     } else {
         sortedCategories.forEach(([category, count]) => {
-            console.log(`  ${chalk.white(category)}: ${chalk.yellow(count)}`);
+            console.log(`  ${category}: ${count}`);
         });
     }
-    console.log(chalk.gray('--------------------------------------------------\n'));
+    console.log(chalk.white('--------------------------------------------------\n'));
 };
