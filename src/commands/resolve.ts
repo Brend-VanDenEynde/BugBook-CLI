@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { getBugs, saveBugs, ensureProjectInit } from '../utils/storage';
+import { getBugs, saveBugs, ensureProjectInit, BUG_PREVIEW_LENGTH } from '../utils/storage';
 
 export const handleResolve = async (argStr: string) => {
     if (!ensureProjectInit()) {
@@ -11,8 +11,6 @@ export const handleResolve = async (argStr: string) => {
     let bugId = argStr.trim();
     const bugs = getBugs();
 
-    // Filter only Open bugs for easier selection, or allow re-opening? 
-    // Let's just list all, or maybe prioritize Open ones.
     if (bugs.length === 0) {
         console.log(chalk.yellow('No bugs found.'));
         return;
@@ -21,7 +19,7 @@ export const handleResolve = async (argStr: string) => {
     if (!bugId) {
         // Interactive selection
         const choices = bugs.map(b => ({
-            name: `[${b.id}] ${b.status === 'Resolved' ? '✅' : '🔴'} ${b.error.substring(0, 50)}...`,
+            name: `[${b.id}] ${b.status === 'Resolved' ? '✅' : '🔴'} ${b.error.substring(0, BUG_PREVIEW_LENGTH)}${b.error.length > BUG_PREVIEW_LENGTH ? '...' : ''}`,
             value: b.id
         }));
 

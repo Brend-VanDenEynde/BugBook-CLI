@@ -1,10 +1,6 @@
 import chalk from 'chalk';
+import packageJson from '../../package.json';
 
 export const handleVersion = () => {
-    try {
-        const packageJson = require('../../package.json');
-        console.log(`v${packageJson.version}`);
-    } catch (error) {
-        console.log(chalk.red('Could not determine version.'));
-    }
+    console.log(`v${packageJson.version}`);
 };

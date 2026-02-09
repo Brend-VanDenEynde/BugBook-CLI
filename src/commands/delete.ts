@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { getBugs, saveBugs, ensureProjectInit } from '../utils/storage';
+import { getBugs, saveBugs, ensureProjectInit, BUG_PREVIEW_LENGTH } from '../utils/storage';
 
 export const handleDelete = async (argStr: string) => {
     if (!ensureProjectInit()) {
@@ -19,7 +19,7 @@ export const handleDelete = async (argStr: string) => {
     if (!bugId) {
         // Interactive selection
         const choices = bugs.map(b => ({
-            name: `[${b.id}] ${b.error.substring(0, 50)}${b.error.length > 50 ? '...' : ''}`,
+            name: `[${b.id}] ${b.error.substring(0, BUG_PREVIEW_LENGTH)}${b.error.length > BUG_PREVIEW_LENGTH ? '...' : ''}`,
             value: b.id
         }));
 

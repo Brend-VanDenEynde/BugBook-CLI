@@ -1,7 +1,7 @@
 {
   "name": "bugbook",
   "version": "0.1.0",
-  "description": "",
+  "description": "A friendly CLI bug tracking tool for developers",
   "main": "dist/index.js",
   "bin": {
     "bugbook": "./dist/index.js"
@@ -25,14 +25,14 @@
   "homepage": "https://github.com/Brend-VanDenEynde/bugbook#readme",
   "devDependencies": {
     "@types/figlet": "^1.7.0",
+    "@types/inquirer": "^9.0.9",
     "@types/node": "^25.2.2",
-    "chalk": "^4.1.2",
-    "figlet": "^1.10.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@types/inquirer": "^9.0.9",
+    "chalk": "^4.1.2",
+    "figlet": "^1.10.0",
     "fuse.js": "^7.1.0",
     "inquirer": "^8.2.7"
   }

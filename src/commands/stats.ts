@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { getBugs, ensureProjectInit } from '../utils/storage';
 
-export const handleStats = async () => {
+export const handleStats = () => {
     if (!ensureProjectInit()) {
         console.log(chalk.yellow('No bugs found (project not initialized).'));
         return;

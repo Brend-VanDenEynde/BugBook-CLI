@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { randomUUID } from 'crypto';
 
 export const BUG_DIR = '.bugbook';
 export const BUG_FILE = 'bugs.md';
@@ -82,7 +83,48 @@ export const getBugCounts = (): Record<string, number> => {
 };
 
 export const generateId = (): string => {
-    return Math.random().toString(36).substr(2, 6).toUpperCase();
+    return randomUUID().substring(0, 8).toUpperCase();
+};
+
+/** Maximum characters to display in bug preview lists */
+export const BUG_PREVIEW_LENGTH = 50;
+
+/**
+ * Sanitize user input to prevent markdown parsing issues.
+ * Escapes special markdown characters that could break file parsing.
+ */
+export const sanitizeInput = (input: string): string => {
+    return input
+        .replace(/[\r\n]+/g, ' ')              // Remove newlines
+        .replace(/---/g, '\u2014\u2014\u2014') // Replace --- with em-dashes
+        .replace(/\*\*/g, '__')                // Replace ** with __
+        .replace(/^#+/gm, '')                  // Remove heading markers
+        .trim();
+};
+
+/**
+ * Validate and sanitize tag name.
+ * Only allows alphanumeric characters, spaces, and hyphens.
+ */
+export const sanitizeTagName = (tag: string): string => {
+    return tag.trim().replace(/[^\w\s-]/g, '');
+};
+
+/**
+ * Add a new tag to the tags file.
+ * Returns true if tag was added, false if invalid or already exists.
+ */
+export const addTag = (tag: string): { success: boolean; message: string } => {
+    const sanitized = sanitizeTagName(tag);
+    if (!sanitized) {
+        return { success: false, message: 'Invalid tag name.' };
+    }
+    const currentTags = getTags();
+    if (currentTags.includes(sanitized)) {
+        return { success: false, message: 'Tag already exists.' };
+    }
+    fs.appendFileSync(TAGS_PATH, `${sanitized}\n`);
+    return { success: true, message: `Tag '${sanitized}' added.` };
 };
 
 export const ensureProjectInit = (): boolean => {

@@ -1,7 +1,6 @@
-import fs from 'fs';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { getTags, getBugCounts, TAGS_PATH } from '../utils/storage';
+import { getTags, getBugCounts, addTag, sanitizeTagName } from '../utils/storage';
 
 export const handleTags = () => {
     const validTags = getTags();
@@ -23,14 +22,16 @@ export const handleNewTag = async () => {
         }
     ]);
 
-    const tag = newTag.trim();
-    if (tag) {
-        const currentTags = getTags();
-        if (!currentTags.includes(tag)) {
-            fs.appendFileSync(TAGS_PATH, `${tag}\n`);
-            console.log(chalk.green(`Tag '${tag}' added.`));
-        } else {
-            console.log(chalk.red('Tag already exists.'));
-        }
+    const sanitized = sanitizeTagName(newTag);
+    if (!sanitized) {
+        console.log(chalk.red('Invalid tag name. Use only letters, numbers, spaces, and hyphens.'));
+        return;
+    }
+
+    const result = addTag(sanitized);
+    if (result.success) {
+        console.log(chalk.green(result.message));
+    } else {
+        console.log(chalk.red(result.message));
     }
 };

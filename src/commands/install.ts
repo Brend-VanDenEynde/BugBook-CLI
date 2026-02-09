@@ -25,28 +25,34 @@ export const handleInstall = async () => {
 
     let created = false;
 
-    if (!fs.existsSync(BUG_DIR)) {
-        fs.mkdirSync(BUG_DIR);
-        console.log(`Created directory: ${chalk.green(BUG_DIR)}`);
-        created = true;
-    }
+    try {
+        if (!fs.existsSync(BUG_DIR)) {
+            fs.mkdirSync(BUG_DIR);
+            console.log(`Created directory: ${chalk.green(BUG_DIR)}`);
+            created = true;
+        }
 
-    if (!fs.existsSync(BUG_PATH)) {
-        fs.writeFileSync(BUG_PATH, '# Bugbook Storage\n\n');
-        console.log(`Created file: ${chalk.green(BUG_PATH)}`);
-        created = true;
-    }
+        if (!fs.existsSync(BUG_PATH)) {
+            fs.writeFileSync(BUG_PATH, '# Bugbook Storage\n\n');
+            console.log(`Created file: ${chalk.green(BUG_PATH)}`);
+            created = true;
+        }
 
-    if (!fs.existsSync(TAGS_PATH)) {
-        fs.writeFileSync(TAGS_PATH, 'General\nFrontend\nBackend\n');
-        console.log(`Created file: ${chalk.green(TAGS_PATH)}`);
-        created = true;
-    }
+        if (!fs.existsSync(TAGS_PATH)) {
+            fs.writeFileSync(TAGS_PATH, 'General\nFrontend\nBackend\n');
+            console.log(`Created file: ${chalk.green(TAGS_PATH)}`);
+            created = true;
+        }
 
-    if (created) {
-        console.log(chalk.magenta('\nBugbook has been successfully installed.'));
-    } else {
-        console.log(chalk.yellow('\nBugbook is already installed in this directory.'));
+        if (created) {
+            console.log(chalk.magenta('\nBugbook has been successfully installed.'));
+        } else {
+            console.log(chalk.yellow('\nBugbook is already installed in this directory.'));
+        }
+    } catch (error) {
+        console.log(chalk.red('Failed to create files. Please check your permissions.'));
+        console.log(chalk.gray((error as Error).message));
+        process.exit(1);
     }
 
     process.exit(0);

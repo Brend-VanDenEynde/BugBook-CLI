@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { getBugs, saveBugs, getTags, ensureProjectInit } from '../utils/storage';
+import { getBugs, saveBugs, getTags, ensureProjectInit, sanitizeInput, addTag, sanitizeTagName, BUG_PREVIEW_LENGTH } from '../utils/storage';
 
 export const handleEdit = async (argStr: string) => {
     if (!ensureProjectInit()) {
@@ -18,7 +18,7 @@ export const handleEdit = async (argStr: string) => {
 
     if (!bugId) {
         const choices = bugs.map(b => ({
-            name: `[${b.id}] ${b.error.substring(0, 50)}...`,
+            name: `[${b.id}] ${b.error.substring(0, BUG_PREVIEW_LENGTH)}${b.error.length > BUG_PREVIEW_LENGTH ? '...' : ''}`,
             value: b.id
         }));
 
@@ -73,7 +73,18 @@ export const handleEdit = async (argStr: string) => {
                 name: 'val',
                 message: 'Enter new tag name:'
             }]);
-            newTag = customTag.val.trim() || 'General';
+
+            const sanitized = sanitizeTagName(customTag.val);
+            if (sanitized) {
+                const result = addTag(sanitized);
+                if (result.success) {
+                    console.log(chalk.green(result.message));
+                }
+                newTag = sanitized;
+            } else {
+                newTag = 'General';
+                console.log(chalk.yellow('Invalid tag name, using "General".'));
+            }
         }
         bug.category = newTag;
 
@@ -86,7 +97,7 @@ export const handleEdit = async (argStr: string) => {
                 default: bug.error
             }
         ]);
-        bug.error = errAnswer.val;
+        bug.error = sanitizeInput(errAnswer.val);
 
     } else if (answers.field === 'Solution') {
         const solAnswer = await inquirer.prompt([
@@ -97,7 +108,7 @@ export const handleEdit = async (argStr: string) => {
                 default: bug.solution
             }
         ]);
-        bug.solution = solAnswer.val;
+        bug.solution = sanitizeInput(solAnswer.val);
     }
 
     saveBugs(bugs);
