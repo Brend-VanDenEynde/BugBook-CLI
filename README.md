@@ -19,8 +19,8 @@ Currently, Bugbook is designed to be run locally from the source.
 
 1.  Clone the repository:
     ```bash
-    git clone https://github.com/Brend-VanDenEynde/bugbook.git
-    cd bugbook
+    git clone https://github.com/Brend-VanDenEynde/BugBook-CLI.git
+    cd BugBook-CLI
     ```
 
 2.  Install dependencies:
