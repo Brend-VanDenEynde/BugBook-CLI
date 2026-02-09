@@ -1,0 +1,26 @@
+# Ignore source files (dist/ is published)
+src/
+
+# Ignore dev/config files
+tsconfig.json
+.git/
+.gitignore
+.bugbook/
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore test files (if added later)
+test/
+tests/
+__tests__/
+*.test.ts
+*.spec.ts
+coverage/
+
+# Ignore docs that aren't needed in package
+*.md
+!README.md

@@ -19,6 +19,9 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "bugs": {
     "url": "https://github.com/Brend-VanDenEynde/bugbook/issues"
   },
