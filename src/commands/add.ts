@@ -14,29 +14,20 @@ export const handleAdd = async () => {
     const tags = await getTags();
     const answers = await inquirer.prompt([
         {
-            type: 'input',
+            type: 'editor',
             name: 'errorMsg',
             message: 'Bug error message:',
             validate: (input: string) => {
                 if (!input.trim()) {
                     return 'Error message cannot be empty.';
                 }
-                if (input.length > MAX_INPUT_LENGTH) {
-                    return `Input too long. Maximum ${MAX_INPUT_LENGTH} characters.`;
-                }
                 return true;
             }
         },
         {
-            type: 'input',
+            type: 'editor',
             name: 'solutionMsg',
             message: 'Bug solution:',
-            validate: (input: string) => {
-                if (input.length > MAX_INPUT_LENGTH) {
-                    return `Input too long. Maximum ${MAX_INPUT_LENGTH} characters.`;
-                }
-                return true;
-            }
         },
         {
             type: 'list',

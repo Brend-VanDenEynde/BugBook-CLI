@@ -1,46 +1,26 @@
 # Changelog
 
-All notable changes to Bugbook will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [0.1.0] - 2026-02-09
-
-### Added
-- Initial release
-- `add` command - Add new bug entries with category tags
-- `list` command - Show the last 5 bugs
-- `search` command - Fuzzy search bugs by ID or text
-- `edit` command - Edit existing bug entries
-- `delete` command - Delete bugs with confirmation
-- `resolve` command - Toggle Open/Resolved status
-- `stats` command - Display bug statistics
-- `tags` command - List all tags with usage counts
-- `new-tag` command - Create new category tags
-- `version` command - Show version info
-- `help` command - Display available commands
-- `install` command - Initialize Bugbook in a directory
-- Interactive REPL mode when run without arguments
-
-### Security
-- Input sanitization to prevent markdown injection
-- Path validation to prevent system directory access
-- Status field validation
-- Input length limits (2000 characters max)
-- Tag name validation (alphanumeric, spaces, hyphens only)
+All notable changes to this project will be documented in this file.
 
 ## [0.2.0] - 2026-02-10
 
 ### Added
-- `export` command - Export bugs to a Markdown file
-- `config` command - Configure Bugbook settings
-- User configuration system
-- Per-bug JSON files instead of a single JSON file
-- Migration from legacy formats
+- **Global Configuration**: New `config` command to set user details (name, email) which are automatically attached to new bugs.
+- **Richer Data**: Bugs now support `priority` levels (High, Medium, Low) and related `files`.
+- **Export**: New `export` command to generate a Markdown report (`BUGS.md`) of all bugs.
+- **External Editor**: The `add` command now opens your default editor for entering error messages and solutions, making it easier to paste large blocks of text or code.
+- **Tags Management**: Enhanced tag management including creating new tags on the fly.
 
 ### Changed
-- Storage format from single JSON file to individual per-bug files
-- Added author field to bugs
-- Updated all commands to use new storage format
-- Updated tests to support new storage format
+- **Storage Engine**: Refactored storage to use individual JSON files for each bug (`.bugbook/bugs/BUG-ID.json`). This significantly reduces git merge conflicts when working in teams.
+- **Migration**: Automatic migration system that converts existing `bugs.json` and `bugs.md` files to the new individual file format.
+- **CLI Interface**: improved prompts and colors for better readability.
+
+### Fixed
+- Fixed issues with legacy file parsing.
+- Improved error handling during file operations.
+
+## [0.1.0] - Initial Release
+- Basic bug tracking functionalities: add, list, delete, edit, resolve.
+- Search capabilities (fuzzy search).
+- Tagging system.
