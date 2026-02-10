@@ -8,12 +8,16 @@ Thanks for your interest in contributing to Bugbook! This document outlines how 
 2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/bugbook.git`
 3. Install dependencies: `npm install`
 4. Build the project: `npm run build`
+5. Run tests: `npm test`
 
 ## Development
 
 ```bash
 # Build the TypeScript
 npm run build
+
+# Run tests
+npm test
 
 # Run locally
 node dist/index.js

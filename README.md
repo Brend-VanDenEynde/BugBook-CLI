@@ -1,6 +1,6 @@
 # Bugbook
 
-**Bugbook** is a lightweight, CLI-based bug tracking tool designed for developers who want to keep track of bugs and solutions directly from their terminal. It stores your bug reports locally in your project directory using Markdown, making it easy to version control and share with your team.
+**Bugbook** is a lightweight, CLI-based bug tracking tool designed for developers who want to keep track of bugs and solutions directly from their terminal. It stores your bug reports locally in your project directory using JSON, making it easy to version control and share with your team.
 
 ![License](https://img.shields.io/badge/license-ISC-blue.svg)
 ![TypeScript](https://img.shields.io/badge/language-TypeScript-blue.svg)
@@ -8,7 +8,7 @@
 ## Features
 
 -   **Local Storage**: Bugs are stored in a `.bugbook` directory within your project.
--   **Markdown Support**: Bug reports are saved in `bugs.md`, readable on GitHub/GitLab.
+-   **Structured Storage**: Bug reports are saved in `bugs.json`, allowing for better data integrity and future integrations.
 -   **Tagging System**: Organize bugs by categories (e.g., specific files, modules, or types of errors).
 -   **Search Functionality**: Quickly find past solutions by error message, ID, or content.
 -   **Interactive CLI**: Easy-to-use command-line interface with prompts.
