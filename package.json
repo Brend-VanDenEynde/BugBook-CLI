@@ -1,6 +1,6 @@
 {
   "name": "bugbook",
-  "version": "0.4.3",
+  "version": "0.4.3-beta",
   "description": "A friendly CLI bug tracking tool for developers",
   "main": "dist/index.js",
   "bin": {
