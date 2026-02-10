@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { generateId, getTags, ensureProjectInit, addBug, Bug, sanitizeInput, addTag, sanitizeTagName, MAX_INPUT_LENGTH } from '../utils/storage';
+import { generateId, getTags, ensureProjectInit, addBug, Bug, sanitizeInput, addTag, sanitizeTagName, validateFilePaths, MAX_INPUT_LENGTH } from '../utils/storage';
 
 export const handleAdd = async () => {
     if (!ensureProjectInit()) {
@@ -74,7 +74,8 @@ export const handleAdd = async () => {
         }
     }
 
-    const files = answers.files ? answers.files.split(',').map((f: string) => f.trim()).filter((f: string) => f.length > 0) : [];
+    const inputFiles = answers.files ? answers.files.split(',').map((f: string) => f.trim()).filter((f: string) => f.length > 0) : [];
+    const files = validateFilePaths(inputFiles);
 
     const newBug: Bug = {
         id: generateId(),

@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { getBugs, saveBug, getTags, ensureProjectInit, sanitizeInput, addTag, sanitizeTagName, BUG_PREVIEW_LENGTH, MAX_INPUT_LENGTH } from '../utils/storage';
+import { getBugs, saveBug, getTags, ensureProjectInit, sanitizeInput, addTag, sanitizeTagName, validateFilePaths, BUG_PREVIEW_LENGTH, MAX_INPUT_LENGTH } from '../utils/storage';
 
 export const handleEdit = async (argStr: string) => {
     if (!ensureProjectInit()) {
@@ -146,7 +146,8 @@ export const handleEdit = async (argStr: string) => {
                 default: bug.files ? bug.files.join(', ') : ''
             }
         ]);
-        bug.files = filesAnswer.val.split(',').map((f: string) => f.trim()).filter((f: string) => f.length > 0);
+        const inputFiles = filesAnswer.val.split(',').map((f: string) => f.trim()).filter((f: string) => f.length > 0);
+        bug.files = validateFilePaths(inputFiles);
     }
 
     await saveBug(bug);

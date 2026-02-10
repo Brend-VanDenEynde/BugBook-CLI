@@ -72,15 +72,17 @@ You can also run commands directly without opening the menu:
 
 | Command | Description |
 | :--- | :--- |
-| `add` | Report a new bug. You will be prompted for the error message, solution, and tags. |
-| `list` | Show the last 5 reported bugs. |
-| `search [query]` | Search for bugs (fuzzy search) by ID or text content. |
-| `edit [ID]` | Edit an existing bug's error, solution, or category. |
+| `add` | Report a new bug. You will be prompted for error, solution, priority, related files, and tags. |
+| `list` | Show the last 5 reported bugs with their status and priority. |
+| `search [query]` | Search for bugs (fuzzy search) by ID, text, priority, or file name. |
+| `edit [ID]` | Edit an existing bug's details. |
 | `delete [ID]` | Delete a bug by ID. |
 | `resolve [ID]` | Toggle a bug's status between Open and Resolved. |
 | `stats` | Show an overview of your bugs (Open vs Resolved, Top Categories). |
 | `tags` | List all available tags and their usage counts. |
 | `new-tag` | Create a new tag category. |
+| `export` | Export bugs to a Markdown file (default: BUGS.md). |
+| `config` | View or set global configuration (e.g., user.name). |
 | `version` | Show the current version of Bugbook. |
 | `help` | Display the help menu. |
 

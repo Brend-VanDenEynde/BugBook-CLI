@@ -281,3 +281,16 @@ export const displayBugs = (bugs: Bug[]): void => {
     console.log(chalk.white('--------------------------------------------------'));
 };
 
+
+export const validateFilePaths = (paths: string[]): string[] => {
+    const validPaths: string[] = [];
+    paths.forEach(p => {
+        if (existsSync(p)) {
+            validPaths.push(p);
+        } else {
+            console.log(chalk.yellow(`Warning: File '${p}' does not exist. It will still be added.`));
+            validPaths.push(p);
+        }
+    });
+    return validPaths;
+};

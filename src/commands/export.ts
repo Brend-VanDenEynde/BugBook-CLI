@@ -37,7 +37,7 @@ export const handleExport = async (args: string[]) => {
     }
 };
 
-const generateMarkdown = (bugs: Bug[]): string => {
+export const generateMarkdown = (bugs: Bug[]): string => {
     let md = '# BugBook Report\n\n';
     md += `Generated on: ${new Date().toLocaleString()}\n\n`;
 
