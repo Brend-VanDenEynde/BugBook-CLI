@@ -116,4 +116,4 @@ Contributions are welcome! If you have ideas for improvements or new features, f
 
 ## License
 
-This project is licensed under the [ISC](https://opensource.org/licenses/ISC) License.
+This project is licensed under the [ISC](LICENSE) License.
