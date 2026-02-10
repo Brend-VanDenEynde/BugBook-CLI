@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { getBugs, saveBugs, ensureProjectInit, BUG_PREVIEW_LENGTH } from '../utils/storage';
+import { getBugs, saveBug, ensureProjectInit, BUG_PREVIEW_LENGTH } from '../utils/storage';
 
 export const handleResolve = async (argStr: string) => {
     if (!ensureProjectInit()) {
@@ -43,7 +43,7 @@ export const handleResolve = async (argStr: string) => {
 
     const newStatus = bug.status === 'Open' ? 'Resolved' : 'Open';
     bug.status = newStatus;
-    await saveBugs(bugs);
+    await saveBug(bug);
 
     const icon = newStatus === 'Resolved' ? '✅' : '🔴';
     console.log(chalk.green(`Bug [${bug.id}] status updated to: ${icon} ${newStatus}`));

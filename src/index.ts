@@ -16,6 +16,7 @@ import { handleDelete } from './commands/delete';
 import { handleEdit } from './commands/edit';
 import { handleResolve } from './commands/resolve';
 import { handleStats } from './commands/stats';
+import { config } from './commands/config';
 
 const printHelp = (includeQuit = false) => {
     console.log(chalk.bold.white('Available commands:'));
@@ -29,6 +30,7 @@ const printHelp = (includeQuit = false) => {
     console.log(`  ${chalk.white('tags')}     - List all tags with usage counts`);
     console.log(`  ${chalk.white('new-tag')}  - Create a new tag`);
     console.log(`  ${chalk.white('version')}  - Show version information`);
+    console.log(`  ${chalk.white('config')}   - View or set global configuration`);
     if (includeQuit) {
         console.log(`  ${chalk.white('quit')}     - Exit the application`);
     } else {
@@ -79,6 +81,10 @@ const executeCommand = async (command: string, argStr: string, isInteractive: bo
             return true;
         case 'version':
             handleVersion();
+            return true;
+        case 'config':
+            const configArgs = argStr ? argStr.split(' ') : [];
+            await config(configArgs);
             return true;
         case 'help':
             printHelp(isInteractive);

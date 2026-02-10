@@ -1,7 +1,7 @@
 import fs from 'fs';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { BUG_DIR, BUG_PATH, TAGS_PATH } from '../utils/storage';
+import { BUG_DIR, TAGS_PATH, initStorage } from '../utils/storage';
 
 export const handleInstall = async () => {
     console.log(chalk.bold.white('Welcome to the Bugbook Installer'));
@@ -26,22 +26,14 @@ export const handleInstall = async () => {
     let created = false;
 
     try {
-        if (!fs.existsSync(BUG_DIR)) {
-            fs.mkdirSync(BUG_DIR);
-            console.log(chalk.green(`Created directory: ${BUG_DIR}`));
-            created = true;
-        }
-
-        if (!fs.existsSync(BUG_PATH)) {
-            fs.writeFileSync(BUG_PATH, '[]', { mode: 0o600 });
-            console.log(chalk.green(`Created file: ${BUG_PATH}`));
-            created = true;
-        }
+        await initStorage();
 
         if (!fs.existsSync(TAGS_PATH)) {
             fs.writeFileSync(TAGS_PATH, JSON.stringify(['General', 'Frontend', 'Backend'], null, 2), { mode: 0o600 });
             console.log(chalk.green(`Created file: ${TAGS_PATH}`));
             created = true;
+        } else {
+            console.log(chalk.white(`File already exists: ${TAGS_PATH}`));
         }
 
         if (created) {
@@ -49,6 +41,7 @@ export const handleInstall = async () => {
         } else {
             console.log(chalk.white('\nBugbook is already installed in this directory.'));
         }
+        process.exit(0);
     } catch (error) {
         console.log(chalk.red('Error: Failed to create files. Please check your permissions.'));
         if (error instanceof Error) {
@@ -56,6 +49,4 @@ export const handleInstall = async () => {
         }
         process.exit(1);
     }
-
-    process.exit(0);
 };

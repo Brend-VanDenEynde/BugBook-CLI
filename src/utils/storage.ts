@@ -1,11 +1,13 @@
 import fs from 'fs/promises';
-import { existsSync, readFileSync } from 'fs'; // Keep sync for init checks if needed, but prefer async
+import { existsSync, readdirSync, statSync } from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
 import chalk from 'chalk';
+import { getUserConfig } from './config';
 
 export const BUG_DIR = '.bugbook';
-export const BUG_FILE_JSON = 'bugs.json';
+export const BUGS_SUBDIR = 'bugs';
+export const BUG_FILE_JSON = 'bugs.json'; // Legacy
 export const TAGS_FILE_JSON = 'tags.json';
 
 // Legacy files for migration
@@ -14,13 +16,10 @@ const LEGACY_TAGS_FILE = 'tags.md';
 
 /**
  * Validate that the current working directory is safe.
- * Prevents path traversal attacks via symlinks or unusual paths.
  */
 const validateCwd = (): string => {
     const cwd = process.cwd();
-    // Ensure path is absolute and normalized
     const normalized = path.resolve(cwd);
-    // Check that we're not in a system directory
     const systemDirs = ['/etc', '/usr', '/bin', '/sbin', 'C:\\Windows', 'C:\\Program Files'];
     for (const sysDir of systemDirs) {
         if (normalized.toLowerCase().startsWith(sysDir.toLowerCase())) {
@@ -32,22 +31,18 @@ const validateCwd = (): string => {
 
 const safeCwd = validateCwd();
 export const BUG_DIR_PATH = path.join(safeCwd, BUG_DIR);
-export const BUG_PATH = path.join(BUG_DIR_PATH, BUG_FILE_JSON);
+export const BUGS_DIR_PATH = path.join(BUG_DIR_PATH, BUGS_SUBDIR);
 export const TAGS_PATH = path.join(BUG_DIR_PATH, TAGS_FILE_JSON);
 
-const LEGACY_BUG_PATH = path.join(BUG_DIR_PATH, LEGACY_BUG_FILE);
-const LEGACY_TAGS_PATH = path.join(BUG_DIR_PATH, LEGACY_TAGS_FILE);
+// Legacy paths
+export const LEGACY_BUG_JSON_PATH = path.join(BUG_DIR_PATH, BUG_FILE_JSON);
+const LEGACY_BUG_MD_PATH = path.join(BUG_DIR_PATH, LEGACY_BUG_FILE);
+const LEGACY_TAGS_MD_PATH = path.join(BUG_DIR_PATH, LEGACY_TAGS_FILE);
 
-/** Maximum characters to display in bug preview lists */
 export const BUG_PREVIEW_LENGTH = 50;
-
-/** Default number of bugs to show in list command */
 export const DEFAULT_LIST_COUNT = 5;
-
-/** Maximum input length for error/solution fields */
 export const MAX_INPUT_LENGTH = 2000;
 
-/** Valid bug statuses */
 const VALID_STATUSES = ['Open', 'Resolved'] as const;
 export type BugStatus = typeof VALID_STATUSES[number];
 
@@ -58,28 +53,59 @@ export interface Bug {
     error: string;
     solution: string;
     status: BugStatus;
+    author?: string;
 }
 
 export const ensureProjectInit = (): boolean => {
-    return existsSync(BUG_DIR_PATH) && (existsSync(BUG_PATH) || existsSync(LEGACY_BUG_PATH));
+    // Check if .bugbook exists
+    return existsSync(BUG_DIR_PATH);
+};
+
+export const initStorage = async () => {
+    if (!existsSync(BUG_DIR_PATH)) {
+        await fs.mkdir(BUG_DIR_PATH, { recursive: true });
+    }
+    if (!existsSync(BUGS_DIR_PATH)) {
+        await fs.mkdir(BUGS_DIR_PATH, { recursive: true });
+    }
 };
 
 /**
- * Migrate legacy Markdown data to JSON if needed.
+ * Migrate legacy data to individual JSON files.
  */
 const migrateIfNeeded = async (): Promise<void> => {
-    if (existsSync(BUG_PATH) && existsSync(TAGS_PATH)) {
-        return; // Already migrated
+    await initStorage();
+
+    // 1. Migrate bugs.json (Legacy JSON) to individual files
+    if (existsSync(LEGACY_BUG_JSON_PATH)) {
+        console.log(chalk.yellow('Migrating bugs.json to individual files...'));
+        try {
+            const content = await fs.readFile(LEGACY_BUG_JSON_PATH, 'utf-8');
+            const bugs: Bug[] = JSON.parse(content);
+
+            for (const bug of bugs) {
+                const bugPath = path.join(BUGS_DIR_PATH, `BUG-${bug.id}.json`);
+                if (!existsSync(bugPath)) {
+                    await fs.writeFile(bugPath, JSON.stringify(bug, null, 2), { mode: 0o600 });
+                }
+            }
+
+            await fs.rename(LEGACY_BUG_JSON_PATH, `${LEGACY_BUG_JSON_PATH}.bak`);
+            console.log(chalk.green(`Migrated ${bugs.length} bugs from bugs.json.`));
+        } catch (error) {
+            console.error(chalk.red('Migration from bugs.json failed:'), error);
+        }
     }
 
-    if (existsSync(LEGACY_BUG_PATH)) {
-        console.log(chalk.yellow('Migrating legacy data to JSON format...'));
+    // 2. Migrate bugs.md (Legacy Markdown) to individual files
+    if (existsSync(LEGACY_BUG_MD_PATH)) {
+        console.log(chalk.yellow('Migrating legacy Markdown to individual files...'));
         try {
-            // Read Legacy Bugs
-            const content = await fs.readFile(LEGACY_BUG_PATH, 'utf-8');
+            const content = await fs.readFile(LEGACY_BUG_MD_PATH, 'utf-8');
             const sections = content.split('---').map(s => s.trim()).filter(s => s.length > 0);
 
-            const bugs: Bug[] = sections.map(section => {
+            let count = 0;
+            for (const section of sections) {
                 const idMatch = section.match(/\*\*ID:\*\*\s*(.*)/i);
                 const catMatch = section.match(/\*\*Category:\*\*\s*(.*)/i);
                 const errMatch = section.match(/\*\*Error:\*\*\s*(.*)/i);
@@ -87,33 +113,38 @@ const migrateIfNeeded = async (): Promise<void> => {
                 const statusMatch = section.match(/\*\*Status:\*\*\s*(.*)/i);
                 const timeMatch = section.match(/^## \[(.*)\]/);
 
-                return {
-                    id: idMatch ? idMatch[1].trim() : 'UNKNOWN',
+                const bug: Bug = {
+                    id: idMatch ? idMatch[1].trim() : generateId(),
                     timestamp: timeMatch ? timeMatch[1].trim() : new Date().toLocaleString(),
                     category: catMatch ? catMatch[1].trim() : 'General',
                     error: errMatch ? errMatch[1].trim() : '',
                     solution: solMatch ? solMatch[1].trim() : '',
-                    status: (statusMatch ? statusMatch[1].trim() : 'Open') as BugStatus
+                    status: (statusMatch ? statusMatch[1].trim() : 'Open') as BugStatus,
+                    author: '' // Legacy bugs have no author
                 };
-            });
 
-            await fs.writeFile(BUG_PATH, JSON.stringify(bugs, null, 2), { mode: 0o600 });
-            console.log(chalk.green(`Migrated ${bugs.length} bugs.`));
+                const bugPath = path.join(BUGS_DIR_PATH, `BUG-${bug.id}.json`);
+                if (!existsSync(bugPath)) {
+                    await fs.writeFile(bugPath, JSON.stringify(bug, null, 2), { mode: 0o600 });
+                    count++;
+                }
+            }
 
-            // Rename legacy file to avoid confusion (or keep as backup)
-            await fs.rename(LEGACY_BUG_PATH, `${LEGACY_BUG_PATH}.bak`);
+            await fs.rename(LEGACY_BUG_MD_PATH, `${LEGACY_BUG_MD_PATH}.bak`);
+            console.log(chalk.green(`Migrated ${count} bugs from bugs.md.`));
 
         } catch (error) {
-            console.error(chalk.red('Migration failed:'), error);
+            console.error(chalk.red('Migration from bugs.md failed:'), error);
         }
     }
 
-    if (existsSync(LEGACY_TAGS_PATH) && !existsSync(TAGS_PATH)) {
+    // 3. Migrate tags
+    if (existsSync(LEGACY_TAGS_MD_PATH) && !existsSync(TAGS_PATH)) {
         try {
-            const content = await fs.readFile(LEGACY_TAGS_PATH, 'utf-8');
+            const content = await fs.readFile(LEGACY_TAGS_MD_PATH, 'utf-8');
             const tags = content.split('\n').map(t => t.trim()).filter(t => t.length > 0);
             await fs.writeFile(TAGS_PATH, JSON.stringify(tags, null, 2), { mode: 0o600 });
-            await fs.rename(LEGACY_TAGS_PATH, `${LEGACY_TAGS_PATH}.bak`);
+            await fs.rename(LEGACY_TAGS_MD_PATH, `${LEGACY_TAGS_MD_PATH}.bak`);
         } catch (error) {
             console.error(chalk.red('Tag migration failed:'), error);
         }
@@ -135,25 +166,52 @@ export const getTags = async (): Promise<string[]> => {
 
 export const getBugs = async (): Promise<Bug[]> => {
     await migrateIfNeeded();
-    if (!existsSync(BUG_PATH)) return [];
+    if (!existsSync(BUGS_DIR_PATH)) return [];
 
     try {
-        const content = await fs.readFile(BUG_PATH, 'utf-8');
-        return JSON.parse(content) as Bug[];
+        const files = await fs.readdir(BUGS_DIR_PATH);
+        const bugs: Bug[] = [];
+        for (const file of files) {
+            if (file.endsWith('.json')) {
+                const content = await fs.readFile(path.join(BUGS_DIR_PATH, file), 'utf-8');
+                bugs.push(JSON.parse(content));
+            }
+        }
+
+        // Sort by timestamp descending (newest first) - assuming textual timestamp sorts okay, 
+        // ideally we'd store ISO, but sticking to existing format for now.
+        // Or if timestamp is locale string, this sort might be weak. 
+        // Better to rely on array order if we had a single file, but with files we assume arbitrary order.
+        return bugs;
+
     } catch (error) {
-        console.error(chalk.red('Error reading bugs.json:'), error);
+        console.error(chalk.red('Error reading bugs directory:'), error);
         return [];
     }
 };
 
-export const saveBugs = async (bugs: Bug[]) => {
-    await fs.writeFile(BUG_PATH, JSON.stringify(bugs, null, 2), { mode: 0o600 });
+export const saveBug = async (bug: Bug) => {
+    await initStorage();
+    const bugPath = path.join(BUGS_DIR_PATH, `BUG-${bug.id}.json`);
+    await fs.writeFile(bugPath, JSON.stringify(bug, null, 2), { mode: 0o600 });
+};
+
+export const deleteBug = async (bugId: string) => {
+    await initStorage();
+    const bugPath = path.join(BUGS_DIR_PATH, `BUG-${bugId}.json`);
+    if (existsSync(bugPath)) {
+        await fs.unlink(bugPath);
+    }
 };
 
 export const addBug = async (bug: Bug) => {
-    const bugs = await getBugs();
-    bugs.push(bug);
-    await saveBugs(bugs);
+    // Inject author if available
+    const config = getUserConfig();
+    if (config.user?.name) {
+        bug.author = config.user.name;
+    }
+
+    await saveBug(bug);
 };
 
 export const getBugCounts = async (): Promise<Record<string, number>> => {
@@ -169,25 +227,14 @@ export const generateId = (): string => {
     return randomUUID().substring(0, 8).toUpperCase();
 };
 
-/**
- * Sanitize user input to prevent issues (less critical with JSON but good practice).
- */
 export const sanitizeInput = (input: string): string => {
-    return input
-        .substring(0, MAX_INPUT_LENGTH)
-        .trim();
+    return input.substring(0, MAX_INPUT_LENGTH).trim();
 };
 
-/**
- * Validate and sanitize tag name.
- */
 export const sanitizeTagName = (tag: string): string => {
     return tag.trim().replace(/[^\w\s-]/g, '');
 };
 
-/**
- * Add a new tag to the tags file.
- */
 export const addTag = async (tag: string): Promise<{ success: boolean; message: string }> => {
     const sanitized = sanitizeTagName(tag);
     if (!sanitized) {
@@ -202,22 +249,20 @@ export const addTag = async (tag: string): Promise<{ success: boolean; message: 
     return { success: true, message: `Tag '${sanitized}' added.` };
 };
 
-/**
- * Display a single bug entry with consistent formatting.
- */
 export const displayBug = (bug: Bug): void => {
     console.log(chalk.white('--------------------------------------------------'));
     const statusIcon = bug.status === 'Resolved' ? '✅' : '🔴';
     console.log(`${chalk.bold.white('ID:')} ${bug.id}  ${statusIcon} ${bug.status}`);
+    if (bug.author) {
+        console.log(`${chalk.bold.white('Author:')} ${bug.author}`);
+    }
     console.log(`${chalk.bold.white('Category:')} ${bug.category}`);
     console.log(`${chalk.bold.white('Error:')} ${bug.error}`);
     console.log(`${chalk.bold.white('Solution:')} ${bug.solution}`);
 };
 
-/**
- * Display multiple bugs with a separator at the end.
- */
 export const displayBugs = (bugs: Bug[]): void => {
     bugs.forEach(displayBug);
     console.log(chalk.white('--------------------------------------------------'));
 };
+

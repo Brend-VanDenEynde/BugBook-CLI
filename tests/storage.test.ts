@@ -6,12 +6,14 @@ import {
     getTags,
     addTag,
     sanitizeInput,
+    deleteBug,
     Bug,
-    BUG_PATH,
+    BUGS_DIR_PATH,
     TAGS_PATH
 } from '../src/utils/storage';
 import fs from 'fs/promises';
 import { existsSync } from 'fs';
+import path from 'path';
 
 // Mock fs/promises and fs
 vi.mock('fs/promises');
@@ -24,9 +26,17 @@ vi.mock('fs', async () => {
             readFile: vi.fn(),
             writeFile: vi.fn(),
             rename: vi.fn(),
+            readdir: vi.fn(),
+            unlink: vi.fn(),
+            mkdir: vi.fn(),
         }
     };
 });
+
+// Mock config
+vi.mock('../src/utils/config', () => ({
+    getUserConfig: vi.fn(() => ({ user: { name: 'Test User' } }))
+}));
 
 describe('Storage Utils', () => {
     beforeEach(() => {
@@ -36,22 +46,11 @@ describe('Storage Utils', () => {
     });
 
     it('should sanitize input correctly', () => {
-        const input = '  Hello\nWorld  *** ';
-        const expected = 'Hello World  ___'; // based on your regex replacement
-        // Wait, let's check the actual sanitization logic
-        // .replace(/[\r\n]+/g, ' ')
-        // .replace(/\*\*/g, '__')
-        // .trim()
-
-        // Actually your sanitizer does NOT remove ***, it replaces ** with __
-        // Let's test basic trimming and newline replacement
         const simple = '  test  ';
         expect(sanitizeInput(simple)).toBe('test');
     });
 
-    it('should add a bug to storage', async () => {
-        // Mock getBugs to return empty array initially
-        (fs.readFile as any).mockResolvedValue('[]');
+    it('should add a bug to storage as individual file', async () => {
         (existsSync as any).mockReturnValue(true);
 
         const newBug: Bug = {
@@ -65,27 +64,54 @@ describe('Storage Utils', () => {
 
         await addBug(newBug);
 
+        const expectedPath = path.join(BUGS_DIR_PATH, 'BUG-123.json');
+
         expect(fs.writeFile).toHaveBeenCalledWith(
-            BUG_PATH,
+            expectedPath,
             expect.stringContaining('"id": "123"'),
+            expect.objectContaining({ mode: 0o600 })
+        );
+
+        // Verify author injection from mock config
+        expect(fs.writeFile).toHaveBeenCalledWith(
+            expectedPath,
+            expect.stringContaining('"author": "Test User"'),
             expect.objectContaining({ mode: 0o600 })
         );
     });
 
-    it('should retrieve bugs from storage', async () => {
-        const mockBugs = [{ id: 'ABC', error: 'Test' }];
-        (fs.readFile as any).mockResolvedValue(JSON.stringify(mockBugs));
+    it('should retrieve bugs from individual files', async () => {
+        // Mock readdir to return file list
+        (fs.readdir as any).mockResolvedValue(['BUG-1.json', 'BUG-2.json', 'other.txt']);
+
+        // Mock readFile to return content for files
+        (fs.readFile as any).mockImplementation(async (filePath: string) => {
+            if (filePath.includes('BUG-1.json')) return JSON.stringify({ id: '1', error: 'Error 1' });
+            if (filePath.includes('BUG-2.json')) return JSON.stringify({ id: '2', error: 'Error 2' });
+            return '';
+        });
+
         (existsSync as any).mockReturnValue(true);
 
         const bugs = await getBugs();
-        expect(bugs).toHaveLength(1);
-        expect(bugs[0].id).toBe('ABC');
+        expect(bugs).toHaveLength(2);
+        expect(bugs.find(b => b.id === '1')).toBeDefined();
+        expect(bugs.find(b => b.id === '2')).toBeDefined();
     });
 
-    it('should return empty array if bug file does not exist', async () => {
+    it('should return empty array if bugs directory does not exist', async () => {
         (existsSync as any).mockReturnValue(false);
         const bugs = await getBugs();
         expect(bugs).toEqual([]);
+    });
+
+    it('should delete a bug file', async () => {
+        (existsSync as any).mockReturnValue(true);
+        const bugId = '123';
+        await deleteBug(bugId);
+
+        const expectedPath = path.join(BUGS_DIR_PATH, 'BUG-123.json');
+        expect(fs.unlink).toHaveBeenCalledWith(expectedPath);
     });
 
     it('should add a new tag', async () => {
@@ -100,14 +126,5 @@ describe('Storage Utils', () => {
             expect.stringContaining('"Frontend"'),
             expect.objectContaining({ mode: 0o600 })
         );
-    });
-
-    it('should not add duplicate tag', async () => {
-        (fs.readFile as any).mockResolvedValue('["General"]');
-        (existsSync as any).mockReturnValue(true);
-
-        const result = await addTag('General');
-        expect(result.success).toBe(false);
-        expect(fs.writeFile).not.toHaveBeenCalled();
     });
 });

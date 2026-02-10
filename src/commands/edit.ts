@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { getBugs, saveBugs, getTags, ensureProjectInit, sanitizeInput, addTag, sanitizeTagName, BUG_PREVIEW_LENGTH, MAX_INPUT_LENGTH } from '../utils/storage';
+import { getBugs, saveBug, getTags, ensureProjectInit, sanitizeInput, addTag, sanitizeTagName, BUG_PREVIEW_LENGTH, MAX_INPUT_LENGTH } from '../utils/storage';
 
 export const handleEdit = async (argStr: string) => {
     if (!ensureProjectInit()) {
@@ -126,6 +126,6 @@ export const handleEdit = async (argStr: string) => {
         bug.solution = sanitizeInput(solAnswer.val);
     }
 
-    await saveBugs(bugs);
+    await saveBug(bug);
     console.log(chalk.green(`Bug [${bug.id}] updated successfully.`));
 };

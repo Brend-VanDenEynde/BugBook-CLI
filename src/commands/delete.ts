@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { getBugs, saveBugs, ensureProjectInit, BUG_PREVIEW_LENGTH } from '../utils/storage';
+import { getBugs, deleteBug, ensureProjectInit, BUG_PREVIEW_LENGTH } from '../utils/storage';
 
 export const handleDelete = async (argStr: string) => {
     if (!ensureProjectInit()) {
@@ -51,8 +51,7 @@ export const handleDelete = async (argStr: string) => {
     ]);
 
     if (confirm) {
-        bugs.splice(bugIndex, 1);
-        await saveBugs(bugs);
+        await deleteBug(bugs[bugIndex].id);
         console.log(chalk.green(`Bug [${bugId}] deleted successfully.`));
     } else {
         console.log(chalk.white('Deletion cancelled.'));
