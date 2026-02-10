@@ -11,6 +11,7 @@ export const handleAdd = async () => {
 
     console.log(chalk.bold.white('\nAdd New Bug Entry'));
 
+    const tags = await getTags();
     const answers = await inquirer.prompt([
         {
             type: 'input',
@@ -41,7 +42,7 @@ export const handleAdd = async () => {
             type: 'list',
             name: 'tag',
             message: 'Select a category/tag:',
-            choices: [...getTags(), new inquirer.Separator(), 'Create new tag'],
+            choices: [...tags, new inquirer.Separator(), 'Create new tag'],
             pageSize: 10
         }
     ]);
@@ -59,7 +60,7 @@ export const handleAdd = async () => {
 
         const sanitized = sanitizeTagName(newTagAnswer.newTagName);
         if (sanitized) {
-            const result = addTag(sanitized);
+            const result = await addTag(sanitized);
             if (result.success) {
                 console.log(chalk.green(result.message));
             }
@@ -80,7 +81,7 @@ export const handleAdd = async () => {
     };
 
     try {
-        addBug(newBug);
+        await addBug(newBug);
         console.log(chalk.green(`\n✔ Bug added successfully!`));
         console.log(chalk.white(`ID: ${newBug.id}`));
     } catch (e) {

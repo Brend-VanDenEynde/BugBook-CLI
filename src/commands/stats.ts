@@ -1,13 +1,13 @@
 import chalk from 'chalk';
 import { getBugs, ensureProjectInit } from '../utils/storage';
 
-export const handleStats = () => {
+export const handleStats = async () => {
     if (!ensureProjectInit()) {
         console.log(chalk.red('Error: Project not initialized.'));
         return;
     }
 
-    const bugs = getBugs();
+    const bugs = await getBugs();
     const totalBugs = bugs.length;
 
     if (totalBugs === 0) {

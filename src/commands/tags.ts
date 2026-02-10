@@ -2,9 +2,9 @@ import inquirer from 'inquirer';
 import chalk from 'chalk';
 import { getTags, getBugCounts, addTag, sanitizeTagName } from '../utils/storage';
 
-export const handleTags = () => {
-    const validTags = getTags();
-    const counts = getBugCounts();
+export const handleTags = async () => {
+    const validTags = await getTags();
+    const counts = await getBugCounts();
     console.log(chalk.bold.white('\nAvailable Tags:'));
     validTags.forEach(tag => {
         const count = counts[tag] || 0;
@@ -28,7 +28,7 @@ export const handleNewTag = async () => {
         return;
     }
 
-    const result = addTag(sanitized);
+    const result = await addTag(sanitized);
     if (result.success) {
         console.log(chalk.green(result.message));
     } else {

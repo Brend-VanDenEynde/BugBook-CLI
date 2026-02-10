@@ -9,7 +9,7 @@ export const handleDelete = async (argStr: string) => {
     }
 
     let bugId = argStr.trim();
-    const bugs = getBugs();
+    const bugs = await getBugs();
 
     if (bugs.length === 0) {
         console.log(chalk.white('No bugs to delete.'));
@@ -52,7 +52,7 @@ export const handleDelete = async (argStr: string) => {
 
     if (confirm) {
         bugs.splice(bugIndex, 1);
-        saveBugs(bugs);
+        await saveBugs(bugs);
         console.log(chalk.green(`Bug [${bugId}] deleted successfully.`));
     } else {
         console.log(chalk.white('Deletion cancelled.'));

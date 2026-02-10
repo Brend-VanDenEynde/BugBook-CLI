@@ -33,13 +33,13 @@ export const handleInstall = async () => {
         }
 
         if (!fs.existsSync(BUG_PATH)) {
-            fs.writeFileSync(BUG_PATH, '# Bugbook Storage\n\n');
+            fs.writeFileSync(BUG_PATH, '[]', { mode: 0o600 });
             console.log(chalk.green(`Created file: ${BUG_PATH}`));
             created = true;
         }
 
         if (!fs.existsSync(TAGS_PATH)) {
-            fs.writeFileSync(TAGS_PATH, 'General\nFrontend\nBackend\n');
+            fs.writeFileSync(TAGS_PATH, JSON.stringify(['General', 'Frontend', 'Backend'], null, 2), { mode: 0o600 });
             console.log(chalk.green(`Created file: ${TAGS_PATH}`));
             created = true;
         }
@@ -51,7 +51,9 @@ export const handleInstall = async () => {
         }
     } catch (error) {
         console.log(chalk.red('Error: Failed to create files. Please check your permissions.'));
-        console.log(chalk.white((error as Error).message));
+        if (error instanceof Error) {
+            console.log(chalk.white(error.message));
+        }
         process.exit(1);
     }
 

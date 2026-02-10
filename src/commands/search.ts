@@ -33,7 +33,7 @@ export const handleSearch = async (argStr: string) => {
         return;
     }
 
-    const bugs = getBugs();
+    const bugs = await getBugs();
 
     const fuse = new Fuse(bugs, {
         keys: ['id', 'error', 'solution', 'category'],

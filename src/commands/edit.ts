@@ -9,7 +9,7 @@ export const handleEdit = async (argStr: string) => {
     }
 
     let bugId = argStr.trim();
-    const bugs = getBugs();
+    const bugs = await getBugs();
 
     if (bugs.length === 0) {
         console.log(chalk.white('No bugs found.'));
@@ -56,12 +56,13 @@ export const handleEdit = async (argStr: string) => {
     }
 
     if (answers.field === 'Category') {
+        const tags = await getTags();
         const tagAnswer = await inquirer.prompt([
             {
                 type: 'list',
                 name: 'tag',
                 message: 'Select new category:',
-                choices: [...getTags(), new inquirer.Separator(), 'Create new tag']
+                choices: [...tags, new inquirer.Separator(), 'Create new tag']
             }
         ]);
 
@@ -75,7 +76,7 @@ export const handleEdit = async (argStr: string) => {
 
             const sanitized = sanitizeTagName(customTag.val);
             if (sanitized) {
-                const result = addTag(sanitized);
+                const result = await addTag(sanitized);
                 if (result.success) {
                     console.log(chalk.green(result.message));
                 }
@@ -125,6 +126,6 @@ export const handleEdit = async (argStr: string) => {
         bug.solution = sanitizeInput(solAnswer.val);
     }
 
-    saveBugs(bugs);
+    await saveBugs(bugs);
     console.log(chalk.green(`Bug [${bug.id}] updated successfully.`));
 };

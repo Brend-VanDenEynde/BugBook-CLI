@@ -54,7 +54,7 @@ const executeCommand = async (command: string, argStr: string, isInteractive: bo
             await handleAdd();
             return true;
         case 'list':
-            handleList();
+            await handleList();
             return true;
         case 'search':
             await handleSearch(argStr);
@@ -69,10 +69,10 @@ const executeCommand = async (command: string, argStr: string, isInteractive: bo
             await handleResolve(argStr);
             return true;
         case 'stats':
-            handleStats();
+            await handleStats();
             return true;
         case 'tags':
-            handleTags();
+            await handleTags();
             return true;
         case 'new-tag':
             await handleNewTag();

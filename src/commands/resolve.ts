@@ -9,7 +9,7 @@ export const handleResolve = async (argStr: string) => {
     }
 
     let bugId = argStr.trim();
-    const bugs = getBugs();
+    const bugs = await getBugs();
 
     if (bugs.length === 0) {
         console.log(chalk.white('No bugs found.'));
@@ -43,7 +43,7 @@ export const handleResolve = async (argStr: string) => {
 
     const newStatus = bug.status === 'Open' ? 'Resolved' : 'Open';
     bug.status = newStatus;
-    saveBugs(bugs);
+    await saveBugs(bugs);
 
     const icon = newStatus === 'Resolved' ? '✅' : '🔴';
     console.log(chalk.green(`Bug [${bug.id}] status updated to: ${icon} ${newStatus}`));
