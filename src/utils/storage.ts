@@ -48,6 +48,12 @@ export type BugStatus = typeof VALID_STATUSES[number];
 
 export type BugPriority = 'High' | 'Medium' | 'Low';
 
+export interface BugComment {
+    text: string;
+    timestamp: string;
+    author?: string;
+}
+
 export interface Bug {
     id: string;
     timestamp: string;
@@ -58,6 +64,8 @@ export interface Bug {
     author?: string;
     priority?: BugPriority;
     files?: string[];
+    comments?: BugComment[];
+    dueDate?: string; // YYYY-MM-DD
 }
 
 export const ensureProjectInit = (): boolean => {
@@ -252,6 +260,46 @@ export const addTag = async (tag: string): Promise<{ success: boolean; message: 
     return { success: true, message: `Tag '${sanitized}' added.` };
 };
 
+export const isOverdue = (bug: Bug): boolean => {
+    if (!bug.dueDate || bug.status === 'Resolved') return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const due = new Date(bug.dueDate + 'T00:00:00');
+    return due < today;
+};
+
+export const getOverdueBugs = (bugs: Bug[]): Bug[] => {
+    return bugs.filter(isOverdue);
+};
+
+export const validateDateStr = (input: string): boolean => {
+    if (!input.trim()) return true; // empty is allowed (skip)
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!regex.test(input.trim())) return false;
+    const d = new Date(input.trim() + 'T00:00:00');
+    return !isNaN(d.getTime());
+};
+
+export const addComment = async (bugId: string, text: string): Promise<{ success: boolean; message: string }> => {
+    const bugs = await getBugs();
+    const bug = bugs.find(b => b.id.toLowerCase() === bugId.toLowerCase());
+    if (!bug) {
+        return { success: false, message: `Bug with ID '${bugId}' not found.` };
+    }
+
+    const config = getUserConfig();
+    const comment: BugComment = {
+        text: sanitizeInput(text),
+        timestamp: new Date().toLocaleString(),
+        author: config.user?.name || undefined
+    };
+
+    if (!bug.comments) bug.comments = [];
+    bug.comments.push(comment);
+    await saveBug(bug);
+    return { success: true, message: `Comment added to bug [${bug.id}].` };
+};
+
 export const displayBug = (bug: Bug): void => {
     console.log(chalk.white('--------------------------------------------------'));
     const statusIcon = bug.status === 'Resolved' ? '✅' : '🔴';
@@ -267,12 +315,32 @@ export const displayBug = (bug: Bug): void => {
         console.log(`${chalk.bold.white('Author:')} ${bug.author}`);
     }
     console.log(`${chalk.bold.white('Category:')} ${bug.category}`);
+
+    // Due date with overdue warning
+    if (bug.dueDate) {
+        if (isOverdue(bug)) {
+            console.log(`${chalk.bold.white('Due Date:')} ${chalk.red(`⚠️  ${bug.dueDate} (OVERDUE)`)}`);
+        } else {
+            console.log(`${chalk.bold.white('Due Date:')} ${chalk.green(bug.dueDate)}`);
+        }
+    }
+
     console.log(`${chalk.bold.white('Error:')} ${bug.error}`);
     console.log(`${chalk.bold.white('Solution:')} ${bug.solution}`);
 
     if (bug.files && bug.files.length > 0) {
         console.log(`${chalk.bold.white('Files:')}`);
         bug.files.forEach(f => console.log(`  - ${f}`));
+    }
+
+    // Show comments
+    if (bug.comments && bug.comments.length > 0) {
+        console.log(`${chalk.bold.white('Comments:')} (${bug.comments.length})`);
+        bug.comments.forEach((c, i) => {
+            const authorStr = c.author ? ` (${c.author})` : '';
+            console.log(chalk.gray(`  [${c.timestamp}]${authorStr}`));
+            console.log(`  ${c.text}`);
+        });
     }
 };
 

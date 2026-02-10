@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { getBugs, saveBug, getTags, ensureProjectInit, sanitizeInput, addTag, sanitizeTagName, validateFilePaths, BUG_PREVIEW_LENGTH, MAX_INPUT_LENGTH } from '../utils/storage';
+import { getBugs, saveBug, getTags, ensureProjectInit, sanitizeInput, addTag, sanitizeTagName, validateFilePaths, validateDateStr, BUG_PREVIEW_LENGTH, MAX_INPUT_LENGTH } from '../utils/storage';
 import { getUserConfig, resolveEditorCommand } from '../utils/config';
 
 export const handleEdit = async (argStr: string) => {
@@ -58,6 +58,7 @@ export const handleEdit = async (argStr: string) => {
             { name: 'Category', value: 'Category' },
             { name: 'Priority', value: 'Priority' },
             { name: 'Files', value: 'Files' },
+            { name: 'Due Date', value: 'Due Date' },
             { name: 'Cancel', value: 'Cancel' }
         ]
     }] as any);
@@ -151,6 +152,19 @@ export const handleEdit = async (argStr: string) => {
         }]);
         const inputFiles = filesAnswer.val.split(',').map((f: string) => f.trim()).filter((f: string) => f.length > 0);
         bug.files = validateFilePaths(inputFiles);
+
+    } else if (fieldAnswer.field === 'Due Date') {
+        const dueDateAnswer = await inquirer.prompt([{
+            type: 'input',
+            name: 'val',
+            message: 'Due date (YYYY-MM-DD, leave empty to clear):',
+            default: bug.dueDate || '',
+            validate: (input: string) => {
+                if (!validateDateStr(input)) return 'Invalid date format. Use YYYY-MM-DD.';
+                return true;
+            }
+        }]);
+        bug.dueDate = dueDateAnswer.val.trim() || undefined;
     }
 
     await saveBug(bug);

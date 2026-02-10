@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2026-02-10
+
+### Added
+- **Comment System**: New `bugbook comment <id>` command to add timestamped notes to bugs without editing them. Supports editor mode.
+- **Due Dates**: Bugs can now have optional due dates (`YYYY-MM-DD`) set during `add` or changed via `edit`.
+- **Deadline Warnings**: `list` command shows overdue bug warnings. `stats` command displays overdue count.
+- **Enhanced Export**: Markdown export now includes due dates and comments.
+
 ## [0.3.0] - 2026-02-10
 
 ### Added

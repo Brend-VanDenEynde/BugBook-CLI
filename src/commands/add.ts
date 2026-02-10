@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { generateId, getTags, ensureProjectInit, addBug, Bug, sanitizeInput, addTag, sanitizeTagName, validateFilePaths, MAX_INPUT_LENGTH } from '../utils/storage';
+import { generateId, getTags, ensureProjectInit, addBug, Bug, sanitizeInput, addTag, sanitizeTagName, validateFilePaths, validateDateStr, MAX_INPUT_LENGTH } from '../utils/storage';
 import { getUserConfig, resolveEditorCommand } from '../utils/config';
 
 export const handleAdd = async () => {
@@ -97,6 +97,17 @@ export const handleAdd = async () => {
     const inputFiles = filesAnswer.files ? filesAnswer.files.split(',').map((f: string) => f.trim()).filter((f: string) => f.length > 0) : [];
     const files = validateFilePaths(inputFiles);
 
+    // Step 6: Due date (optional)
+    const dueDateAnswer = await inquirer.prompt([{
+        type: 'input',
+        name: 'dueDate',
+        message: 'Due date (YYYY-MM-DD, leave empty to skip):',
+        validate: (input: string) => {
+            if (!validateDateStr(input)) return 'Invalid date format. Use YYYY-MM-DD.';
+            return true;
+        }
+    }]);
+
     const newBug: Bug = {
         id: generateId(),
         timestamp: new Date().toLocaleString(),
@@ -105,7 +116,8 @@ export const handleAdd = async () => {
         solution: sanitizeInput(solutionAnswer.solutionMsg),
         status: 'Open',
         priority: priorityAnswer.priority,
-        files: files
+        files: files,
+        dueDate: dueDateAnswer.dueDate.trim() || undefined
     };
 
     try {

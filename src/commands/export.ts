@@ -68,6 +68,7 @@ const formatBugMd = (bug: Bug): string => {
     entry += `- **Category**: ${bug.category}\n`;
     entry += `- **Priority**: ${bug.priority || 'Medium'}\n`;
     if (bug.author) entry += `- **Author**: ${bug.author}\n`;
+    if (bug.dueDate) entry += `- **Due Date**: ${bug.dueDate}\n`;
     entry += `- **Date**: ${bug.timestamp}\n\n`;
 
     entry += `**Error**:\n\`\`\`\n${bug.error}\n\`\`\`\n\n`;
@@ -80,6 +81,14 @@ const formatBugMd = (bug: Bug): string => {
         entry += `**Related Files**:\n`;
         bug.files.forEach(f => entry += `- \`${f}\`\n`);
         entry += '\n';
+    }
+
+    if (bug.comments && bug.comments.length > 0) {
+        entry += `**Comments** (${bug.comments.length}):\n`;
+        bug.comments.forEach(c => {
+            const authorStr = c.author ? ` (${c.author})` : '';
+            entry += `> _${c.timestamp}${authorStr}_: ${c.text}\n\n`;
+        });
     }
 
     entry += '---\n\n';

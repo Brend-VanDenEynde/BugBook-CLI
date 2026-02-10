@@ -1,8 +1,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { generateMarkdown } from '../src/commands/export';
-import { validateFilePaths } from '../src/utils/storage';
-import { Bug } from '../src/utils/storage';
+import { validateFilePaths, validateDateStr, isOverdue, Bug } from '../src/utils/storage';
 import { existsSync } from 'fs';
 
 // Mock fs
@@ -89,6 +88,105 @@ describe('Command Integration Tests', () => {
             expect(consoleSpy).toHaveBeenCalledWith(expect.stringMatching(/Warning: File 'missing.ts' does not exist/));
 
             consoleSpy.mockRestore();
+        });
+    });
+
+    describe('Date Validation', () => {
+        it('should accept valid date strings', () => {
+            expect(validateDateStr('2026-02-10')).toBe(true);
+            expect(validateDateStr('2025-12-31')).toBe(true);
+        });
+
+        it('should accept empty string (skip)', () => {
+            expect(validateDateStr('')).toBe(true);
+            expect(validateDateStr('   ')).toBe(true);
+        });
+
+        it('should reject invalid date strings', () => {
+            expect(validateDateStr('not-a-date')).toBe(false);
+            expect(validateDateStr('2026/02/10')).toBe(false);
+            expect(validateDateStr('10-02-2026')).toBe(false);
+            expect(validateDateStr('2026-13-01')).toBe(false);
+        });
+    });
+
+    describe('Overdue Detection', () => {
+        it('should detect overdue open bugs', () => {
+            const bug: Bug = {
+                id: 'TEST-1',
+                timestamp: '2023-01-01',
+                category: 'General',
+                error: 'Test bug',
+                solution: '',
+                status: 'Open',
+                dueDate: '2020-01-01'
+            };
+            expect(isOverdue(bug)).toBe(true);
+        });
+
+        it('should not flag resolved bugs as overdue', () => {
+            const bug: Bug = {
+                id: 'TEST-2',
+                timestamp: '2023-01-01',
+                category: 'General',
+                error: 'Test bug',
+                solution: 'Fixed',
+                status: 'Resolved',
+                dueDate: '2020-01-01'
+            };
+            expect(isOverdue(bug)).toBe(false);
+        });
+
+        it('should not flag bugs with no due date', () => {
+            const bug: Bug = {
+                id: 'TEST-3',
+                timestamp: '2023-01-01',
+                category: 'General',
+                error: 'Test bug',
+                solution: '',
+                status: 'Open'
+            };
+            expect(isOverdue(bug)).toBe(false);
+        });
+
+        it('should not flag future due dates as overdue', () => {
+            const bug: Bug = {
+                id: 'TEST-4',
+                timestamp: '2023-01-01',
+                category: 'General',
+                error: 'Test bug',
+                solution: '',
+                status: 'Open',
+                dueDate: '2099-12-31'
+            };
+            expect(isOverdue(bug)).toBe(false);
+        });
+    });
+
+    describe('Export with Comments and Due Dates', () => {
+        it('should include due dates and comments in markdown', () => {
+            const bugs: Bug[] = [{
+                id: 'TEST-C1',
+                timestamp: '2023-01-01',
+                category: 'Ui',
+                error: 'Button broken',
+                solution: 'Fix css',
+                status: 'Open',
+                priority: 'High',
+                dueDate: '2026-03-01',
+                comments: [
+                    { text: 'Investigating...', timestamp: '2023-01-02', author: 'Dev' },
+                    { text: 'Found root cause', timestamp: '2023-01-03' }
+                ]
+            }];
+
+            const md = generateMarkdown(bugs);
+
+            expect(md).toContain('2026-03-01');
+            expect(md).toContain('Investigating...');
+            expect(md).toContain('Found root cause');
+            expect(md).toContain('(Dev)');
+            expect(md).toContain('Comments');
         });
     });
 });

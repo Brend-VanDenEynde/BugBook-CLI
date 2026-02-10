@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { getBugs, ensureProjectInit } from '../utils/storage';
+import { getBugs, getOverdueBugs, ensureProjectInit } from '../utils/storage';
 
 export const handleStats = async () => {
     if (!ensureProjectInit()) {
@@ -17,6 +17,7 @@ export const handleStats = async () => {
 
     const openBugs = bugs.filter(b => b.status === 'Open').length;
     const resolvedBugs = bugs.filter(b => b.status === 'Resolved').length;
+    const overdueBugs = getOverdueBugs(bugs).length;
 
     const categoryCounts: Record<string, number> = {};
     bugs.forEach(b => {
@@ -33,6 +34,9 @@ export const handleStats = async () => {
     console.log(`${chalk.bold.white('Total Bugs:')}     ${totalBugs}`);
     console.log(`${chalk.bold.white('Open:')}           ${openBugs}`);
     console.log(`${chalk.bold.white('Resolved:')}       ${resolvedBugs}`);
+    if (overdueBugs > 0) {
+        console.log(`${chalk.bold.red('Overdue:')}        ${overdueBugs}`);
+    }
 
     console.log(chalk.white('--------------------------------------------------'));
     console.log(chalk.bold.white('Top Categories:'));

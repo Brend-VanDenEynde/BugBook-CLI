@@ -17,6 +17,7 @@ import { handleEdit } from './commands/edit';
 import { handleResolve } from './commands/resolve';
 import { handleStats } from './commands/stats';
 import { handleExport } from './commands/export';
+import { handleComment } from './commands/comment';
 import { config } from './commands/config';
 
 const printHelp = (includeQuit = false) => {
@@ -27,6 +28,7 @@ const printHelp = (includeQuit = false) => {
     console.log(`  ${chalk.white('edit')}     - Edit an existing bug`);
     console.log(`  ${chalk.white('delete')}   - Delete a bug`);
     console.log(`  ${chalk.white('resolve')}  - Toggle Open/Resolved status`);
+    console.log(`  ${chalk.white('comment')}  - Add a comment to a bug`);
     console.log(`  ${chalk.white('stats')}    - Show bug statistics`);
     console.log(`  ${chalk.white('tags')}     - List all tags with usage counts`);
     console.log(`  ${chalk.white('new-tag')}  - Create a new tag`);
@@ -71,6 +73,9 @@ const executeCommand = async (command: string, argStr: string, isInteractive: bo
             return true;
         case 'resolve':
             await handleResolve(argStr);
+            return true;
+        case 'comment':
+            await handleComment(argStr);
             return true;
         case 'stats':
             await handleStats();
