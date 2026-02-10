@@ -1,11 +1,12 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { getBugs, addComment, getBugById, ensureProjectInit, BUG_PREVIEW_LENGTH, MAX_INPUT_LENGTH, displayBug } from '../utils/storage';
-import { getUserConfig, resolveEditorCommand } from '../utils/config';
+import { getBugs, addComment, getBugById, ensureProjectInit, MAX_INPUT_LENGTH, displayBug } from '../utils/storage';
+import { setupEditor } from '../utils/config';
+import { selectBugPrompt } from '../utils/prompts';
 
 export const handleComment = async (argStr: string) => {
     if (!ensureProjectInit()) {
-        console.log(chalk.red('Error: Bugbook is not initialized.'));
+        console.error(chalk.red('Error: Bugbook is not initialized.'));
         return;
     }
 
@@ -18,34 +19,17 @@ export const handleComment = async (argStr: string) => {
     }
 
     if (!bugId) {
-        const choices = bugs.map(b => ({
-            name: `[${b.id}] ${b.status === 'Resolved' ? '✅' : '🔴'} ${b.error.substring(0, BUG_PREVIEW_LENGTH)}${b.error.length > BUG_PREVIEW_LENGTH ? '...' : ''}`,
-            value: b.id
-        }));
-
-        const answer = await inquirer.prompt([{
-            type: 'list',
-            name: 'selectedId',
-            message: 'Select a bug to comment on:',
-            choices,
-            pageSize: 10
-        }] as any);
-        bugId = answer.selectedId;
+        bugId = await selectBugPrompt(bugs, 'Select a bug to comment on:');
     }
 
     // Validate bug exists before prompting for comment text
     const bug = await getBugById(bugId);
     if (!bug) {
-        console.log(chalk.red(`Error: Bug with ID '${bugId}' not found.`));
+        console.error(chalk.red(`Error: Bug with ID '${bugId}' not found.`));
         return;
     }
 
-    const config = getUserConfig();
-    const useEditor = config.editor && config.editor !== 'cli';
-
-    if (useEditor && config.editor) {
-        process.env.VISUAL = resolveEditorCommand(config.editor);
-    }
+    const useEditor = setupEditor();
 
     const commentAnswer = await inquirer.prompt([{
         type: useEditor ? 'editor' : 'input',

@@ -3,7 +3,7 @@ import { getBugs, getOverdueBugs, ensureProjectInit } from '../utils/storage';
 
 export const handleStats = async () => {
     if (!ensureProjectInit()) {
-        console.log(chalk.red('Error: Project not initialized.'));
+        console.error(chalk.red('Error: Project not initialized.'));
         return;
     }
 

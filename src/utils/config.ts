@@ -55,3 +55,17 @@ export const resolveEditorCommand = (editor: string): string => {
     }
     return editor;
 };
+
+/**
+ * Sets up the editor environment for inquirer's 'editor' prompt type.
+ * Encapsulates the repeated pattern of checking config and setting VISUAL env var.
+ * @returns true if an external editor is configured, false for CLI input mode.
+ */
+export const setupEditor = (): boolean => {
+    const config = getUserConfig();
+    const useEditor = !!(config.editor && config.editor !== 'cli');
+    if (useEditor && config.editor) {
+        process.env.VISUAL = resolveEditorCommand(config.editor);
+    }
+    return useEditor;
+};

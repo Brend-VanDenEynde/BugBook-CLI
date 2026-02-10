@@ -1,11 +1,12 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { getBugs, saveBug, getTags, ensureProjectInit, sanitizeInput, addTag, sanitizeTagName, warnMissingFiles, validateDateStr, BUG_PREVIEW_LENGTH, MAX_INPUT_LENGTH } from '../utils/storage';
-import { getUserConfig, resolveEditorCommand } from '../utils/config';
+import { getBugs, saveBug, getTags, ensureProjectInit, sanitizeInput, addTag, sanitizeTagName, warnMissingFiles, validateDateStr, MAX_INPUT_LENGTH } from '../utils/storage';
+import { setupEditor } from '../utils/config';
+import { selectBugPrompt } from '../utils/prompts';
 
 export const handleEdit = async (argStr: string) => {
     if (!ensureProjectInit()) {
-        console.log(chalk.red('Error: Bugbook is not initialized.'));
+        console.error(chalk.red('Error: Bugbook is not initialized.'));
         return;
     }
 
@@ -18,34 +19,17 @@ export const handleEdit = async (argStr: string) => {
     }
 
     if (!bugId) {
-        const choices = bugs.map(b => ({
-            name: `[${b.id}] ${b.error.substring(0, BUG_PREVIEW_LENGTH)}${b.error.length > BUG_PREVIEW_LENGTH ? '...' : ''}`,
-            value: b.id
-        }));
-
-        const answer = await inquirer.prompt([{
-            type: 'list',
-            name: 'selectedId',
-            message: 'Select a bug to edit:',
-            choices,
-            pageSize: 10
-        }] as any);
-        bugId = answer.selectedId;
+        bugId = await selectBugPrompt(bugs, 'Select a bug to edit:');
     }
 
-    const bug = bugs.find(b => b.id.toLowerCase() === bugId.toLowerCase());
+    const bug = bugs.find(b => b.id.toUpperCase() === bugId.toUpperCase());
 
     if (!bug) {
-        console.log(chalk.red(`Error: Bug with ID '${bugId}' not found.`));
+        console.error(chalk.red(`Error: Bug with ID '${bugId}' not found.`));
         return;
     }
 
-    const config = getUserConfig();
-    const useEditor = config.editor && config.editor !== 'cli';
-
-    if (config.editor) {
-        process.env.VISUAL = resolveEditorCommand(config.editor);
-    }
+    const useEditor = setupEditor();
 
     // Field selection
     const fieldAnswer = await inquirer.prompt([{

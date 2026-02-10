@@ -1,10 +1,11 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { getBugs, deleteBug, ensureProjectInit, BUG_PREVIEW_LENGTH } from '../utils/storage';
+import { getBugs, deleteBug, ensureProjectInit } from '../utils/storage';
+import { selectBugPrompt } from '../utils/prompts';
 
 export const handleDelete = async (argStr: string) => {
     if (!ensureProjectInit()) {
-        console.log(chalk.red('Error: Bugbook is not initialized.'));
+        console.error(chalk.red('Error: Bugbook is not initialized.'));
         return;
     }
 
@@ -17,25 +18,13 @@ export const handleDelete = async (argStr: string) => {
     }
 
     if (!bugId) {
-        const choices = bugs.map(b => ({
-            name: `[${b.id}] ${b.error.substring(0, BUG_PREVIEW_LENGTH)}${b.error.length > BUG_PREVIEW_LENGTH ? '...' : ''}`,
-            value: b.id
-        }));
-
-        const answer = await inquirer.prompt([{
-            type: 'list',
-            name: 'selectedId',
-            message: 'Select a bug to delete:',
-            choices,
-            pageSize: 10
-        }] as any);
-        bugId = answer.selectedId;
+        bugId = await selectBugPrompt(bugs, 'Select a bug to delete:');
     }
 
-    const bugIndex = bugs.findIndex(b => b.id.toLowerCase() === bugId.toLowerCase());
+    const bugIndex = bugs.findIndex(b => b.id.toUpperCase() === bugId.toUpperCase());
 
     if (bugIndex === -1) {
-        console.log(chalk.red(`Error: Bug with ID '${bugId}' not found.`));
+        console.error(chalk.red(`Error: Bug with ID '${bugId}' not found.`));
         return;
     }
 

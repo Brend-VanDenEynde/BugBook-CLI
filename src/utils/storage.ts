@@ -132,7 +132,7 @@ const migrateIfNeeded = async (): Promise<void> => {
 
                 const bug: Bug = {
                     id: idMatch ? idMatch[1].trim() : generateId(),
-                    timestamp: timeMatch ? timeMatch[1].trim() : new Date().toLocaleString(),
+                    timestamp: timeMatch ? timeMatch[1].trim() : new Date().toISOString(),
                     category: catMatch ? catMatch[1].trim() : 'General',
                     error: errMatch ? errMatch[1].trim() : '',
                     solution: solMatch ? solMatch[1].trim() : '',
@@ -314,7 +314,7 @@ export const addComment = async (bugId: string, text: string): Promise<{ success
     const config = getUserConfig();
     const comment: BugComment = {
         text: sanitizeInput(text),
-        timestamp: new Date().toLocaleString(),
+        timestamp: new Date().toISOString(),
         author: config.user?.name || undefined
     };
 

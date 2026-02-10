@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.3] - 2026-02-10
+
+### Code Quality
+- **ISO timestamps**: All `toLocaleString()` calls replaced with `toISOString()` for consistent, sortable timestamps
+- **Shared editor setup**: Extracted `setupEditor()` helper in `config.ts` — used by `add`, `edit`, and `comment` commands
+- **Shared bug picker**: Created `prompts.ts` with `selectBugPrompt()` — used by `delete`, `edit`, `resolve`, and `comment` commands
+- **Consistent errors**: All error messages now use `console.error` instead of mixed `console.log`
+- **Async export**: Converted `export.ts` from sync `fs.writeFileSync` to async `fs/promises`
+- **Uppercase ID comparison**: All bug lookups now consistently use `toUpperCase()` instead of mixed `toLowerCase()`
+
 ## [0.4.2] - 2026-02-10
 
 ### Improved

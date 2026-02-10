@@ -1,23 +1,18 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import { generateId, getTags, ensureProjectInit, addBug, Bug, sanitizeInput, addTag, sanitizeTagName, warnMissingFiles, validateDateStr, MAX_INPUT_LENGTH } from '../utils/storage';
-import { getUserConfig, resolveEditorCommand } from '../utils/config';
+import { setupEditor } from '../utils/config';
 
 export const handleAdd = async () => {
     if (!ensureProjectInit()) {
-        console.log(chalk.red('Error: Bugbook is not installed in this directory.'));
+        console.error(chalk.red('Error: Bugbook is not installed in this directory.'));
         console.log(chalk.white('Run "bugbook install" first.'));
         return;
     }
 
     console.log(chalk.bold.white('\nAdd New Bug Entry'));
 
-    const config = getUserConfig();
-    const useEditor = config.editor && config.editor !== 'cli';
-
-    if (useEditor && config.editor) {
-        process.env.VISUAL = resolveEditorCommand(config.editor);
-    }
+    const useEditor = setupEditor();
 
     // Step 1: Error message
     const errorAnswer = await inquirer.prompt([{
@@ -110,7 +105,7 @@ export const handleAdd = async () => {
 
     const newBug: Bug = {
         id: generateId(),
-        timestamp: new Date().toLocaleString(),
+        timestamp: new Date().toISOString(),
         category: selectedTag,
         error: sanitizeInput(errorAnswer.errorMsg),
         solution: sanitizeInput(solutionAnswer.solutionMsg),

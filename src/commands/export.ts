@@ -1,11 +1,11 @@
-import fs from 'fs';
+import fs from 'fs/promises';
 import path from 'path';
 import chalk from 'chalk';
 import { getBugs, Bug, ensureProjectInit } from '../utils/storage';
 
 export const handleExport = async (args: string[]) => {
     if (!ensureProjectInit()) {
-        console.log(chalk.red('Error: Bugbook is not initialized.'));
+        console.error(chalk.red('Error: Bugbook is not initialized.'));
         return;
     }
 
@@ -30,7 +30,7 @@ export const handleExport = async (args: string[]) => {
     const content = generateMarkdown(bugs);
 
     try {
-        fs.writeFileSync(outputFile, content);
+        await fs.writeFile(outputFile, content);
         console.log(chalk.green(`Successfully exported ${bugs.length} bugs to ${outputFile}`));
     } catch (error: any) {
         console.error(chalk.red(`Failed to export: ${error.message}`));
@@ -39,7 +39,7 @@ export const handleExport = async (args: string[]) => {
 
 export const generateMarkdown = (bugs: Bug[]): string => {
     let md = '# BugBook Report\n\n';
-    md += `Generated on: ${new Date().toLocaleString()}\n\n`;
+    md += `Generated on: ${new Date().toISOString()}\n\n`;
 
     // Group by status? Or just list.
     // Let's list Open first, then Resolved.
