@@ -1,25 +1,27 @@
 # Bugbook
 
-**Bugbook** is a lightweight, CLI-based bug tracking tool designed for developers who want to keep track of bugs and solutions directly from their terminal. It stores your bug reports locally in your project directory using JSON, making it easy to version control and share with your team.
+**Bugbook** is a lightweight, CLI-based bug tracking tool designed for developers who want to keep track of bugs and solutions directly from their terminal. It stores your bug reports locally in your project directory using individual JSON files, making it easy to version control and share with your team.
 
 ![License](https://img.shields.io/badge/license-ISC-blue.svg)
 ![TypeScript](https://img.shields.io/badge/language-TypeScript-blue.svg)
+![Version](https://img.shields.io/badge/version-0.4.3-green.svg)
 
 ## Features
 
--   **Local Storage**: Bugs are stored in a `.bugbook` directory within your project.
--   **Structured Storage**: Bug reports are saved in `bugs.json`, allowing for better data integrity and future integrations.
+-   **Local Storage**: Bugs are stored as individual JSON files in a `.bugbook/bugs/` directory within your project.
+-   **Priority & Due Dates**: Assign priorities (High/Medium/Low) and due dates with overdue warnings.
+-   **Comments**: Add timestamped notes to any bug for ongoing tracking.
 -   **Tagging System**: Organize bugs by categories (e.g., specific files, modules, or types of errors).
--   **Search Functionality**: Quickly find past solutions by error message, ID, or content.
--   **Configurable Editor**: Set your preferred text editor (VS Code, Vim, etc.) for detailed bug descriptions.
+-   **Fuzzy Search**: Quickly find past solutions by error message, ID, priority, or file name.
+-   **Configurable Editor**: Set your preferred text editor (VS Code, Notepad, Vim, etc.) for detailed bug descriptions.
 -   **Interactive Install**: Guided setup for user details and preferences.
--   **Export Capabilities**: Export your bug database to a Markdown report (`BUGS.md`).
--   **Validations**: Warnings for non-existent files in bug reports.
+-   **Export**: Export your bug database to a Markdown report (`BUGS.md`).
+-   **Statistics**: Get an overview of open, resolved, and overdue bugs.
 -   **Interactive CLI**: Easy-to-use command-line interface with prompts.
 
 ## Installation
 
-Currently, Bugbook is designed to be run locally from the source.
+### From Source
 
 1.  Clone the repository:
     ```bash
@@ -66,48 +68,58 @@ bugbook
 
 ### 3. Direct Commands
 
-You can also run commands directly without opening the menu:
+You can also run commands directly:
 
 ```bash
-[command]
+bugbook <command> [arguments]
 ```
 
 ### Commands
 
 | Command | Description |
 | :--- | :--- |
-| `add` | Report a new bug. You will be prompted for error, solution, priority, related files, and tags. |
-| `list` | Show the last 5 reported bugs with their status and priority. |
-| `search [query]` | Search for bugs (fuzzy search) by ID, text, priority, or file name. |
-| `edit [ID]` | Edit an existing bug's details. |
-| `delete [ID]` | Delete a bug by ID. |
+| `install` | Initialize Bugbook in the current directory. |
+| `add` | Report a new bug with error, solution, priority, files, and due date. |
+| `list` | Show the last 5 reported bugs with overdue warnings. |
+| `search [query]` | Fuzzy search for bugs by ID, text, priority, or file name. |
+| `edit [ID]` | Edit an existing bug's details (error, solution, category, priority, files, due date). |
+| `delete [ID]` | Delete a bug by ID (with confirmation). |
 | `resolve [ID]` | Toggle a bug's status between Open and Resolved. |
-| `stats` | Show an overview of your bugs (Open vs Resolved, Top Categories). |
+| `comment [ID]` | Add a timestamped comment/note to a bug. |
+| `stats` | Show an overview of bugs (Open, Resolved, Overdue, Top Categories). |
 | `tags` | List all available tags and their usage counts. |
 | `new-tag` | Create a new tag category. |
-| `export` | Export bugs to a Markdown file (default: BUGS.md). |
-| `config` | View or set global configuration (e.g., user.name). |
+| `export [--out file]` | Export bugs to a Markdown file (default: `BUGS.md`). |
+| `config [key] [value]` | View or set global configuration (user.name, editor). |
 | `version` | Show the current version of Bugbook. |
 | `help` | Display the help menu. |
 
 ### Examples
     
-**1. Initialize (First time only):**
+**Initialize (First time only):**
 ```bash
 bugbook install
 ```
 
-**2. Adding a Bug:**
+**Adding a Bug:**
 ```bash
-# Inside of the bugbook cli
-add
-# Follow the interactive prompts...
+bugbook add
+# Follow the interactive prompts for error, solution, priority, files, and due date
 ```
 
-**3. Searching for a Solution:**
+**Searching for a Solution:**
 ```bash
-# Inside of the bugbook cli
-search "null pointer"
+bugbook search "null pointer"
+```
+
+**Adding a Comment:**
+```bash
+bugbook comment ABC123
+```
+
+**Export to Markdown:**
+```bash
+bugbook export --out report.md
 ```
 
 ## Contributing
@@ -118,8 +130,9 @@ Contributions are welcome! If you have ideas for improvements or new features, f
 2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
 3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4.  Push to the Branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull Requesta
+5.  Open a Pull Request
 
 ## License
 
 This project is licensed under the [ISC](LICENSE) License.
+

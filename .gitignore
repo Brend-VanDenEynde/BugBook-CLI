@@ -32,6 +32,13 @@ pnpm-debug.log*
 # OS generated files
 Thumbs.db
 
+# Test & Coverage
+coverage/
 
-# Bugbook
-.bugbook
+# Bugbook data (project-specific, not part of source)
+.bugbook/
+.bugbookrc
+
+# Export output
+BUGS.md
+
