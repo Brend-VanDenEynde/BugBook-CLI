@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.1] - 2026-02-10
+
+### Fixed
+- **Corrupt file resilience**: `getBugs()` now catches parse errors per file instead of failing on all bugs when one file is corrupt.
+- **Performance**: `addComment()` now reads a single bug file directly via new `getBugById()` helper instead of loading all bugs from disk.
+- **Performance**: `migrateIfNeeded()` result is now cached — migration checks only run once per process.
+- **Comment command**: Eliminated redundant double bug lookup (was reading all bugs twice).
+- Removed unused `readdirSync`/`statSync` imports and unused loop variable.
+
 ## [0.4.0] - 2026-02-10
 
 ### Added

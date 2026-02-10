@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { getBugs, addComment, ensureProjectInit, BUG_PREVIEW_LENGTH, MAX_INPUT_LENGTH, displayBug } from '../utils/storage';
+import { getBugs, addComment, getBugById, ensureProjectInit, BUG_PREVIEW_LENGTH, MAX_INPUT_LENGTH, displayBug } from '../utils/storage';
 import { getUserConfig, resolveEditorCommand } from '../utils/config';
 
 export const handleComment = async (argStr: string) => {
@@ -33,7 +33,8 @@ export const handleComment = async (argStr: string) => {
         bugId = answer.selectedId;
     }
 
-    const bug = bugs.find(b => b.id.toLowerCase() === bugId.toLowerCase());
+    // Validate bug exists before prompting for comment text
+    const bug = await getBugById(bugId);
     if (!bug) {
         console.log(chalk.red(`Error: Bug with ID '${bugId}' not found.`));
         return;

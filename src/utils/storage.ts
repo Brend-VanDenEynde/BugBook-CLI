@@ -1,5 +1,5 @@
 import fs from 'fs/promises';
-import { existsSync, readdirSync, statSync } from 'fs';
+import { existsSync } from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
 import chalk from 'chalk';
@@ -84,8 +84,11 @@ export const initStorage = async () => {
 
 /**
  * Migrate legacy data to individual JSON files.
+ * Cached: only runs once per process lifetime.
  */
+let migrationDone = false;
 const migrateIfNeeded = async (): Promise<void> => {
+    if (migrationDone) return;
     await initStorage();
 
     // 1. Migrate bugs.json (Legacy JSON) to individual files
@@ -161,6 +164,7 @@ const migrateIfNeeded = async (): Promise<void> => {
             console.error(chalk.red('Tag migration failed:'), error);
         }
     }
+    migrationDone = true;
 };
 
 export const getTags = async (): Promise<string[]> => {
@@ -185,8 +189,12 @@ export const getBugs = async (): Promise<Bug[]> => {
         const bugs: Bug[] = [];
         for (const file of files) {
             if (file.endsWith('.json')) {
-                const content = await fs.readFile(path.join(BUGS_DIR_PATH, file), 'utf-8');
-                bugs.push(JSON.parse(content));
+                try {
+                    const content = await fs.readFile(path.join(BUGS_DIR_PATH, file), 'utf-8');
+                    bugs.push(JSON.parse(content));
+                } catch (err) {
+                    console.error(chalk.yellow(`Warning: Skipping corrupt file ${file}`));
+                }
             }
         }
 
@@ -280,9 +288,23 @@ export const validateDateStr = (input: string): boolean => {
     return !isNaN(d.getTime());
 };
 
+/**
+ * Load a single bug directly by ID (avoids reading all bugs from disk).
+ */
+export const getBugById = async (bugId: string): Promise<Bug | null> => {
+    await migrateIfNeeded();
+    const bugPath = path.join(BUGS_DIR_PATH, `BUG-${bugId.toUpperCase()}.json`);
+    if (!existsSync(bugPath)) return null;
+    try {
+        const content = await fs.readFile(bugPath, 'utf-8');
+        return JSON.parse(content) as Bug;
+    } catch {
+        return null;
+    }
+};
+
 export const addComment = async (bugId: string, text: string): Promise<{ success: boolean; message: string }> => {
-    const bugs = await getBugs();
-    const bug = bugs.find(b => b.id.toLowerCase() === bugId.toLowerCase());
+    const bug = await getBugById(bugId);
     if (!bug) {
         return { success: false, message: `Bug with ID '${bugId}' not found.` };
     }
@@ -336,7 +358,7 @@ export const displayBug = (bug: Bug): void => {
     // Show comments
     if (bug.comments && bug.comments.length > 0) {
         console.log(`${chalk.bold.white('Comments:')} (${bug.comments.length})`);
-        bug.comments.forEach((c, i) => {
+        bug.comments.forEach((c) => {
             const authorStr = c.author ? ` (${c.author})` : '';
             console.log(chalk.gray(`  [${c.timestamp}]${authorStr}`));
             console.log(`  ${c.text}`);
