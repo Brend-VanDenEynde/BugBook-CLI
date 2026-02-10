@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { getBugs, saveBug, getTags, ensureProjectInit, sanitizeInput, addTag, sanitizeTagName, validateFilePaths, validateDateStr, BUG_PREVIEW_LENGTH, MAX_INPUT_LENGTH } from '../utils/storage';
+import { getBugs, saveBug, getTags, ensureProjectInit, sanitizeInput, addTag, sanitizeTagName, warnMissingFiles, validateDateStr, BUG_PREVIEW_LENGTH, MAX_INPUT_LENGTH } from '../utils/storage';
 import { getUserConfig, resolveEditorCommand } from '../utils/config';
 
 export const handleEdit = async (argStr: string) => {
@@ -151,7 +151,7 @@ export const handleEdit = async (argStr: string) => {
             default: bug.files ? bug.files.join(', ') : ''
         }]);
         const inputFiles = filesAnswer.val.split(',').map((f: string) => f.trim()).filter((f: string) => f.length > 0);
-        bug.files = validateFilePaths(inputFiles);
+        bug.files = warnMissingFiles(inputFiles);
 
     } else if (fieldAnswer.field === 'Due Date') {
         const dueDateAnswer = await inquirer.prompt([{

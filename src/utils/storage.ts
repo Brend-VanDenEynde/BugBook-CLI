@@ -16,8 +16,11 @@ const LEGACY_TAGS_FILE = 'tags.md';
 
 /**
  * Validate that the current working directory is safe.
+ * Lazy: only runs on first access, not on module load.
  */
-const validateCwd = (): string => {
+let _safeCwd: string | null = null;
+const getSafeCwd = (): string => {
+    if (_safeCwd) return _safeCwd;
     const cwd = process.cwd();
     const normalized = path.resolve(cwd);
     const systemDirs = ['/etc', '/usr', '/bin', '/sbin', 'C:\\Windows', 'C:\\Program Files'];
@@ -26,18 +29,17 @@ const validateCwd = (): string => {
             throw new Error(`Cannot initialize bugbook in system directory: ${normalized}`);
         }
     }
-    return normalized;
+    _safeCwd = normalized;
+    return _safeCwd;
 };
 
-const safeCwd = validateCwd();
-export const BUG_DIR_PATH = path.join(safeCwd, BUG_DIR);
-export const BUGS_DIR_PATH = path.join(BUG_DIR_PATH, BUGS_SUBDIR);
-export const TAGS_PATH = path.join(BUG_DIR_PATH, TAGS_FILE_JSON);
-
-// Legacy paths
-export const LEGACY_BUG_JSON_PATH = path.join(BUG_DIR_PATH, BUG_FILE_JSON);
-const LEGACY_BUG_MD_PATH = path.join(BUG_DIR_PATH, LEGACY_BUG_FILE);
-const LEGACY_TAGS_MD_PATH = path.join(BUG_DIR_PATH, LEGACY_TAGS_FILE);
+/** Lazy-computed paths — not evaluated at import time. */
+export const getBugDirPath = () => path.join(getSafeCwd(), BUG_DIR);
+export const getBugsDirPath = () => path.join(getBugDirPath(), BUGS_SUBDIR);
+export const getTagsPath = () => path.join(getBugDirPath(), TAGS_FILE_JSON);
+export const getLegacyBugJsonPath = () => path.join(getBugDirPath(), BUG_FILE_JSON);
+const getLegacyBugMdPath = () => path.join(getBugDirPath(), LEGACY_BUG_FILE);
+const getLegacyTagsMdPath = () => path.join(getBugDirPath(), LEGACY_TAGS_FILE);
 
 export const BUG_PREVIEW_LENGTH = 50;
 export const DEFAULT_LIST_COUNT = 5;
@@ -70,15 +72,15 @@ export interface Bug {
 
 export const ensureProjectInit = (): boolean => {
     // Check if .bugbook exists
-    return existsSync(BUG_DIR_PATH);
+    return existsSync(getBugDirPath());
 };
 
 export const initStorage = async () => {
-    if (!existsSync(BUG_DIR_PATH)) {
-        await fs.mkdir(BUG_DIR_PATH, { recursive: true });
+    if (!existsSync(getBugDirPath())) {
+        await fs.mkdir(getBugDirPath(), { recursive: true });
     }
-    if (!existsSync(BUGS_DIR_PATH)) {
-        await fs.mkdir(BUGS_DIR_PATH, { recursive: true });
+    if (!existsSync(getBugsDirPath())) {
+        await fs.mkdir(getBugsDirPath(), { recursive: true });
     }
 };
 
@@ -92,20 +94,20 @@ const migrateIfNeeded = async (): Promise<void> => {
     await initStorage();
 
     // 1. Migrate bugs.json (Legacy JSON) to individual files
-    if (existsSync(LEGACY_BUG_JSON_PATH)) {
+    if (existsSync(getLegacyBugJsonPath())) {
         console.log(chalk.yellow('Migrating bugs.json to individual files...'));
         try {
-            const content = await fs.readFile(LEGACY_BUG_JSON_PATH, 'utf-8');
+            const content = await fs.readFile(getLegacyBugJsonPath(), 'utf-8');
             const bugs: Bug[] = JSON.parse(content);
 
             for (const bug of bugs) {
-                const bugPath = path.join(BUGS_DIR_PATH, `BUG-${bug.id}.json`);
+                const bugPath = path.join(getBugsDirPath(), `BUG-${bug.id}.json`);
                 if (!existsSync(bugPath)) {
                     await fs.writeFile(bugPath, JSON.stringify(bug, null, 2), { mode: 0o600 });
                 }
             }
 
-            await fs.rename(LEGACY_BUG_JSON_PATH, `${LEGACY_BUG_JSON_PATH}.bak`);
+            await fs.rename(getLegacyBugJsonPath(), `${getLegacyBugJsonPath()}.bak`);
             console.log(chalk.green(`Migrated ${bugs.length} bugs from bugs.json.`));
         } catch (error) {
             console.error(chalk.red('Migration from bugs.json failed:'), error);
@@ -113,10 +115,10 @@ const migrateIfNeeded = async (): Promise<void> => {
     }
 
     // 2. Migrate bugs.md (Legacy Markdown) to individual files
-    if (existsSync(LEGACY_BUG_MD_PATH)) {
+    if (existsSync(getLegacyBugMdPath())) {
         console.log(chalk.yellow('Migrating legacy Markdown to individual files...'));
         try {
-            const content = await fs.readFile(LEGACY_BUG_MD_PATH, 'utf-8');
+            const content = await fs.readFile(getLegacyBugMdPath(), 'utf-8');
             const sections = content.split('---').map(s => s.trim()).filter(s => s.length > 0);
 
             let count = 0;
@@ -138,14 +140,14 @@ const migrateIfNeeded = async (): Promise<void> => {
                     author: '' // Legacy bugs have no author
                 };
 
-                const bugPath = path.join(BUGS_DIR_PATH, `BUG-${bug.id}.json`);
+                const bugPath = path.join(getBugsDirPath(), `BUG-${bug.id}.json`);
                 if (!existsSync(bugPath)) {
                     await fs.writeFile(bugPath, JSON.stringify(bug, null, 2), { mode: 0o600 });
                     count++;
                 }
             }
 
-            await fs.rename(LEGACY_BUG_MD_PATH, `${LEGACY_BUG_MD_PATH}.bak`);
+            await fs.rename(getLegacyBugMdPath(), `${getLegacyBugMdPath()}.bak`);
             console.log(chalk.green(`Migrated ${count} bugs from bugs.md.`));
 
         } catch (error) {
@@ -154,12 +156,12 @@ const migrateIfNeeded = async (): Promise<void> => {
     }
 
     // 3. Migrate tags
-    if (existsSync(LEGACY_TAGS_MD_PATH) && !existsSync(TAGS_PATH)) {
+    if (existsSync(getLegacyTagsMdPath()) && !existsSync(getTagsPath())) {
         try {
-            const content = await fs.readFile(LEGACY_TAGS_MD_PATH, 'utf-8');
+            const content = await fs.readFile(getLegacyTagsMdPath(), 'utf-8');
             const tags = content.split('\n').map(t => t.trim()).filter(t => t.length > 0);
-            await fs.writeFile(TAGS_PATH, JSON.stringify(tags, null, 2), { mode: 0o600 });
-            await fs.rename(LEGACY_TAGS_MD_PATH, `${LEGACY_TAGS_MD_PATH}.bak`);
+            await fs.writeFile(getTagsPath(), JSON.stringify(tags, null, 2), { mode: 0o600 });
+            await fs.rename(getLegacyTagsMdPath(), `${getLegacyTagsMdPath()}.bak`);
         } catch (error) {
             console.error(chalk.red('Tag migration failed:'), error);
         }
@@ -169,8 +171,8 @@ const migrateIfNeeded = async (): Promise<void> => {
 
 export const getTags = async (): Promise<string[]> => {
     await migrateIfNeeded();
-    if (existsSync(TAGS_PATH)) {
-        const fileContent = await fs.readFile(TAGS_PATH, 'utf-8');
+    if (existsSync(getTagsPath())) {
+        const fileContent = await fs.readFile(getTagsPath(), 'utf-8');
         try {
             return JSON.parse(fileContent) as string[];
         } catch {
@@ -182,15 +184,15 @@ export const getTags = async (): Promise<string[]> => {
 
 export const getBugs = async (): Promise<Bug[]> => {
     await migrateIfNeeded();
-    if (!existsSync(BUGS_DIR_PATH)) return [];
+    if (!existsSync(getBugsDirPath())) return [];
 
     try {
-        const files = await fs.readdir(BUGS_DIR_PATH);
+        const files = await fs.readdir(getBugsDirPath());
         const bugs: Bug[] = [];
         for (const file of files) {
             if (file.endsWith('.json')) {
                 try {
-                    const content = await fs.readFile(path.join(BUGS_DIR_PATH, file), 'utf-8');
+                    const content = await fs.readFile(path.join(getBugsDirPath(), file), 'utf-8');
                     bugs.push(JSON.parse(content));
                 } catch (err) {
                     console.error(chalk.yellow(`Warning: Skipping corrupt file ${file}`));
@@ -211,13 +213,13 @@ export const getBugs = async (): Promise<Bug[]> => {
 
 export const saveBug = async (bug: Bug) => {
     await initStorage();
-    const bugPath = path.join(BUGS_DIR_PATH, `BUG-${bug.id}.json`);
+    const bugPath = path.join(getBugsDirPath(), `BUG-${bug.id.toUpperCase()}.json`);
     await fs.writeFile(bugPath, JSON.stringify(bug, null, 2), { mode: 0o600 });
 };
 
 export const deleteBug = async (bugId: string) => {
     await initStorage();
-    const bugPath = path.join(BUGS_DIR_PATH, `BUG-${bugId}.json`);
+    const bugPath = path.join(getBugsDirPath(), `BUG-${bugId.toUpperCase()}.json`);
     if (existsSync(bugPath)) {
         await fs.unlink(bugPath);
     }
@@ -264,7 +266,7 @@ export const addTag = async (tag: string): Promise<{ success: boolean; message: 
         return { success: false, message: 'Tag already exists.' };
     }
     currentTags.push(sanitized);
-    await fs.writeFile(TAGS_PATH, JSON.stringify(currentTags, null, 2), { mode: 0o600 });
+    await fs.writeFile(getTagsPath(), JSON.stringify(currentTags, null, 2), { mode: 0o600 });
     return { success: true, message: `Tag '${sanitized}' added.` };
 };
 
@@ -293,7 +295,7 @@ export const validateDateStr = (input: string): boolean => {
  */
 export const getBugById = async (bugId: string): Promise<Bug | null> => {
     await migrateIfNeeded();
-    const bugPath = path.join(BUGS_DIR_PATH, `BUG-${bugId.toUpperCase()}.json`);
+    const bugPath = path.join(getBugsDirPath(), `BUG-${bugId.toUpperCase()}.json`);
     if (!existsSync(bugPath)) return null;
     try {
         const content = await fs.readFile(bugPath, 'utf-8');
@@ -372,15 +374,18 @@ export const displayBugs = (bugs: Bug[]): void => {
 };
 
 
-export const validateFilePaths = (paths: string[]): string[] => {
-    const validPaths: string[] = [];
+/**
+ * Warns about missing file paths but still returns all of them.
+ * Renamed from validateFilePaths to accurately reflect behavior.
+ */
+export const warnMissingFiles = (paths: string[]): string[] => {
     paths.forEach(p => {
-        if (existsSync(p)) {
-            validPaths.push(p);
-        } else {
+        if (!existsSync(p)) {
             console.log(chalk.yellow(`Warning: File '${p}' does not exist. It will still be added.`));
-            validPaths.push(p);
         }
     });
-    return validPaths;
+    return paths;
 };
+
+/** @deprecated Use warnMissingFiles instead */
+export const validateFilePaths = warnMissingFiles;

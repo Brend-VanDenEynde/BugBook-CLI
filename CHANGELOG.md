@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.2] - 2026-02-10
+
+### Improved
+- **Lazy initialization**: `validateCwd()` no longer runs on module import — paths are computed on first access via getter functions (`getBugDirPath()`, `getBugsDirPath()`, `getTagsPath()`). Improves testability.
+- **Consistent bug IDs**: All bug IDs are now normalized to uppercase consistently in `saveBug()`, `deleteBug()`, and `getBugById()`.
+- **Clearer API**: Renamed `validateFilePaths()` → `warnMissingFiles()` to accurately reflect its behavior (warns but always returns all paths). Old name available as deprecated alias.
+- **No more process.exit()**: Removed all `process.exit()` calls from `install.ts` — the command handler now returns naturally.
+
 ## [0.4.1] - 2026-02-10
 
 ### Fixed

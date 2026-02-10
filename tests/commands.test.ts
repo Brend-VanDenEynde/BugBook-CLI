@@ -1,7 +1,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { generateMarkdown } from '../src/commands/export';
-import { validateFilePaths, validateDateStr, isOverdue, Bug } from '../src/utils/storage';
+import { warnMissingFiles, validateDateStr, isOverdue, Bug } from '../src/utils/storage';
 import { existsSync } from 'fs';
 
 // Mock fs
@@ -79,7 +79,7 @@ describe('Command Integration Tests', () => {
             const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
 
             const inputs = ['exists.ts', 'missing.ts'];
-            const results = validateFilePaths(inputs);
+            const results = warnMissingFiles(inputs);
 
             // It should return BOTH because we only warn, not filter
             expect(results).toEqual(['exists.ts', 'missing.ts']);

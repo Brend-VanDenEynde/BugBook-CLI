@@ -1,7 +1,7 @@
 import fs from 'fs';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { BUG_DIR, TAGS_PATH, initStorage } from '../utils/storage';
+import { BUG_DIR, getTagsPath, initStorage } from '../utils/storage';
 import { getUserConfig, setUserConfig } from '../utils/config';
 
 export const handleInstall = async () => {
@@ -19,7 +19,7 @@ export const handleInstall = async () => {
 
     if (!answers.proceed) {
         console.log(chalk.white('Installation aborted.'));
-        process.exit(0);
+        return;
     }
 
     // Check if global config is already set
@@ -80,8 +80,6 @@ export const handleInstall = async () => {
 
         setUserConfig('editor', selectedEditor);
         console.log(chalk.green(`Editor set to: ${selectedEditor}`));
-        // We need to signal config update, but this local function scope makes it hard.
-        // We can just rely on console log.
     }
 
     if (configUpdates) {
@@ -91,16 +89,17 @@ export const handleInstall = async () => {
     console.log(chalk.white('\nSetting things up...'));
 
     let created = false;
+    const tagsPath = getTagsPath();
 
     try {
         await initStorage();
 
-        if (!fs.existsSync(TAGS_PATH)) {
-            fs.writeFileSync(TAGS_PATH, JSON.stringify(['General', 'Frontend', 'Backend'], null, 2), { mode: 0o600 });
-            console.log(chalk.green(`Created file: ${TAGS_PATH}`));
+        if (!fs.existsSync(tagsPath)) {
+            fs.writeFileSync(tagsPath, JSON.stringify(['General', 'Frontend', 'Backend'], null, 2), { mode: 0o600 });
+            console.log(chalk.green(`Created file: ${tagsPath}`));
             created = true;
         } else {
-            console.log(chalk.white(`File already exists: ${TAGS_PATH}`));
+            console.log(chalk.white(`File already exists: ${tagsPath}`));
         }
 
         if (created) {
@@ -108,12 +107,11 @@ export const handleInstall = async () => {
         } else {
             console.log(chalk.white('\nBugbook is already installed in this directory.'));
         }
-        process.exit(0);
     } catch (error) {
         console.log(chalk.red('Error: Failed to create files. Please check your permissions.'));
         if (error instanceof Error) {
             console.log(chalk.white(error.message));
         }
-        process.exit(1);
     }
 };
+

@@ -8,8 +8,8 @@ import {
     sanitizeInput,
     deleteBug,
     Bug,
-    BUGS_DIR_PATH,
-    TAGS_PATH
+    getBugsDirPath,
+    getTagsPath
 } from '../src/utils/storage';
 import fs from 'fs/promises';
 import { existsSync } from 'fs';
@@ -66,7 +66,7 @@ describe('Storage Utils', () => {
 
         await addBug(newBug);
 
-        const expectedPath = path.join(BUGS_DIR_PATH, 'BUG-123.json');
+        const expectedPath = path.join(getBugsDirPath(), 'BUG-123.json');
 
         expect(fs.writeFile).toHaveBeenCalledWith(
             expectedPath,
@@ -118,7 +118,7 @@ describe('Storage Utils', () => {
         const bugId = '123';
         await deleteBug(bugId);
 
-        const expectedPath = path.join(BUGS_DIR_PATH, 'BUG-123.json');
+        const expectedPath = path.join(getBugsDirPath(), 'BUG-123.json');
         expect(fs.unlink).toHaveBeenCalledWith(expectedPath);
     });
 
@@ -130,7 +130,7 @@ describe('Storage Utils', () => {
 
         expect(result.success).toBe(true);
         expect(fs.writeFile).toHaveBeenCalledWith(
-            TAGS_PATH,
+            getTagsPath(),
             expect.stringContaining('"Frontend"'),
             expect.objectContaining({ mode: 0o600 })
         );
