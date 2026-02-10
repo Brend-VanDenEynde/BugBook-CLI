@@ -46,6 +46,8 @@ export const MAX_INPUT_LENGTH = 2000;
 const VALID_STATUSES = ['Open', 'Resolved'] as const;
 export type BugStatus = typeof VALID_STATUSES[number];
 
+export type BugPriority = 'High' | 'Medium' | 'Low';
+
 export interface Bug {
     id: string;
     timestamp: string;
@@ -54,6 +56,8 @@ export interface Bug {
     solution: string;
     status: BugStatus;
     author?: string;
+    priority?: BugPriority;
+    files?: string[];
 }
 
 export const ensureProjectInit = (): boolean => {
@@ -178,10 +182,9 @@ export const getBugs = async (): Promise<Bug[]> => {
             }
         }
 
-        // Sort by timestamp descending (newest first) - assuming textual timestamp sorts okay, 
-        // ideally we'd store ISO, but sticking to existing format for now.
-        // Or if timestamp is locale string, this sort might be weak. 
-        // Better to rely on array order if we had a single file, but with files we assume arbitrary order.
+        // Sort by timestamp descending (newest first)
+        // Note: This relies on the timestamp string format which might not sort chronologically perfect if locale varies
+        // but essentially we just return them. The list command can sort if needed.
         return bugs;
 
     } catch (error) {
@@ -252,13 +255,25 @@ export const addTag = async (tag: string): Promise<{ success: boolean; message: 
 export const displayBug = (bug: Bug): void => {
     console.log(chalk.white('--------------------------------------------------'));
     const statusIcon = bug.status === 'Resolved' ? '✅' : '🔴';
-    console.log(`${chalk.bold.white('ID:')} ${bug.id}  ${statusIcon} ${bug.status}`);
+
+    let priorityStr = '';
+    if (bug.priority) {
+        const pColor = bug.priority === 'High' ? chalk.red : (bug.priority === 'Medium' ? chalk.yellow : chalk.blue);
+        priorityStr = ` [${pColor(bug.priority)}]`;
+    }
+
+    console.log(`${chalk.bold.white('ID:')} ${bug.id}  ${statusIcon} ${bug.status}${priorityStr}`);
     if (bug.author) {
         console.log(`${chalk.bold.white('Author:')} ${bug.author}`);
     }
     console.log(`${chalk.bold.white('Category:')} ${bug.category}`);
     console.log(`${chalk.bold.white('Error:')} ${bug.error}`);
     console.log(`${chalk.bold.white('Solution:')} ${bug.solution}`);
+
+    if (bug.files && bug.files.length > 0) {
+        console.log(`${chalk.bold.white('Files:')}`);
+        bug.files.forEach(f => console.log(`  - ${f}`));
+    }
 };
 
 export const displayBugs = (bugs: Bug[]): void => {

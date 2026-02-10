@@ -40,6 +40,18 @@ export const handleAdd = async () => {
         },
         {
             type: 'list',
+            name: 'priority',
+            message: 'Priority:',
+            choices: ['Low', 'Medium', 'High'],
+            default: 'Medium'
+        },
+        {
+            type: 'input',
+            name: 'files',
+            message: 'Related files (comma separated, optional):'
+        },
+        {
+            type: 'list',
             name: 'tag',
             message: 'Select a category/tag:',
             choices: [...tags, new inquirer.Separator(), 'Create new tag'],
@@ -71,13 +83,17 @@ export const handleAdd = async () => {
         }
     }
 
+    const files = answers.files ? answers.files.split(',').map((f: string) => f.trim()).filter((f: string) => f.length > 0) : [];
+
     const newBug: Bug = {
         id: generateId(),
         timestamp: new Date().toLocaleString(),
         category: selectedTag,
         error: sanitizeInput(answers.errorMsg),
         solution: sanitizeInput(answers.solutionMsg),
-        status: 'Open'
+        status: 'Open',
+        priority: answers.priority,
+        files: files
     };
 
     try {

@@ -59,7 +59,9 @@ describe('Storage Utils', () => {
             category: 'General',
             error: 'Test Error',
             solution: 'Test Solution',
-            status: 'Open'
+            status: 'Open',
+            priority: 'High',
+            files: ['src/test.ts']
         };
 
         await addBug(newBug);
@@ -86,12 +88,18 @@ describe('Storage Utils', () => {
 
         // Mock readFile to return content for files
         (fs.readFile as any).mockImplementation(async (filePath: string) => {
-            if (filePath.includes('BUG-1.json')) return JSON.stringify({ id: '1', error: 'Error 1' });
-            if (filePath.includes('BUG-2.json')) return JSON.stringify({ id: '2', error: 'Error 2' });
-            return '';
+            const strPath = String(filePath);
+            if (strPath.endsWith('BUG-1.json')) return JSON.stringify({ id: '1', error: 'Error 1' });
+            if (strPath.endsWith('BUG-2.json')) return JSON.stringify({ id: '2', error: 'Error 2' });
+            return '[]'; // Default empty array for legacy files to avoid parse errors
         });
 
-        (existsSync as any).mockReturnValue(true);
+        // Mock existsSync to only return true for the bugs directory, NOT legacy files
+        (existsSync as any).mockImplementation((filePath: string) => {
+            const strPath = String(filePath);
+            if (strPath.includes('bugs')) return true; // Directory and bug files exist
+            return false; // Legacy files do not exist
+        });
 
         const bugs = await getBugs();
         expect(bugs).toHaveLength(2);

@@ -16,6 +16,7 @@ import { handleDelete } from './commands/delete';
 import { handleEdit } from './commands/edit';
 import { handleResolve } from './commands/resolve';
 import { handleStats } from './commands/stats';
+import { handleExport } from './commands/export';
 import { config } from './commands/config';
 
 const printHelp = (includeQuit = false) => {
@@ -29,6 +30,7 @@ const printHelp = (includeQuit = false) => {
     console.log(`  ${chalk.white('stats')}    - Show bug statistics`);
     console.log(`  ${chalk.white('tags')}     - List all tags with usage counts`);
     console.log(`  ${chalk.white('new-tag')}  - Create a new tag`);
+    console.log(`  ${chalk.white('export')}   - Export bugs to Markdown (default: BUGS.md)`);
     console.log(`  ${chalk.white('version')}  - Show version information`);
     console.log(`  ${chalk.white('config')}   - View or set global configuration`);
     if (includeQuit) {
@@ -78,6 +80,10 @@ const executeCommand = async (command: string, argStr: string, isInteractive: bo
             return true;
         case 'new-tag':
             await handleNewTag();
+            return true;
+        case 'export':
+            const exportArgs = argStr ? argStr.split(' ') : [];
+            await handleExport(exportArgs);
             return true;
         case 'version':
             handleVersion();

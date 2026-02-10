@@ -46,7 +46,7 @@ export const handleEdit = async (argStr: string) => {
             type: 'list',
             name: 'field',
             message: 'Which field do you want to edit?',
-            choices: ['Error Message', 'Solution', 'Category', 'Cancel']
+            choices: ['Error Message', 'Solution', 'Category', 'Priority', 'Files', 'Cancel']
         }
     ]);
 
@@ -124,6 +124,29 @@ export const handleEdit = async (argStr: string) => {
             }
         ]);
         bug.solution = sanitizeInput(solAnswer.val);
+
+    } else if (answers.field === 'Priority') {
+        const priorityAnswer = await inquirer.prompt([
+            {
+                type: 'list',
+                name: 'val',
+                message: 'New priority:',
+                choices: ['Low', 'Medium', 'High'],
+                default: bug.priority || 'Medium'
+            }
+        ]);
+        bug.priority = priorityAnswer.val;
+
+    } else if (answers.field === 'Files') {
+        const filesAnswer = await inquirer.prompt([
+            {
+                type: 'input',
+                name: 'val',
+                message: 'Related files (comma separated):',
+                default: bug.files ? bug.files.join(', ') : ''
+            }
+        ]);
+        bug.files = filesAnswer.val.split(',').map((f: string) => f.trim()).filter((f: string) => f.length > 0);
     }
 
     await saveBug(bug);

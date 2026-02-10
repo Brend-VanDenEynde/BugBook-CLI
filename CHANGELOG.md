@@ -29,3 +29,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Status field validation
 - Input length limits (2000 characters max)
 - Tag name validation (alphanumeric, spaces, hyphens only)
+
+## [0.2.0] - 2026-02-10
+
+### Added
+- `export` command - Export bugs to a Markdown file
+- `config` command - Configure Bugbook settings
+- User configuration system
+- Per-bug JSON files instead of a single JSON file
+- Migration from legacy formats
+
+### Changed
+- Storage format from single JSON file to individual per-bug files
+- Added author field to bugs
+- Updated all commands to use new storage format
+- Updated tests to support new storage format
