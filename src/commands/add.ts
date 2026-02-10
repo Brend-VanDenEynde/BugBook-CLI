@@ -1,6 +1,7 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import { generateId, getTags, ensureProjectInit, addBug, Bug, sanitizeInput, addTag, sanitizeTagName, validateFilePaths, MAX_INPUT_LENGTH } from '../utils/storage';
+import { getUserConfig, resolveEditorCommand } from '../utils/config';
 
 export const handleAdd = async () => {
     if (!ensureProjectInit()) {
@@ -11,55 +12,74 @@ export const handleAdd = async () => {
 
     console.log(chalk.bold.white('\nAdd New Bug Entry'));
 
-    const tags = await getTags();
-    const answers = await inquirer.prompt([
-        {
-            type: 'editor',
-            name: 'errorMsg',
-            message: 'Bug error message:',
-            validate: (input: string) => {
-                if (!input.trim()) {
-                    return 'Error message cannot be empty.';
-                }
-                return true;
-            }
-        },
-        {
-            type: 'editor',
-            name: 'solutionMsg',
-            message: 'Bug solution:',
-        },
-        {
-            type: 'list',
-            name: 'priority',
-            message: 'Priority:',
-            choices: ['Low', 'Medium', 'High'],
-            default: 'Medium'
-        },
-        {
-            type: 'input',
-            name: 'files',
-            message: 'Related files (comma separated, optional):'
-        },
-        {
-            type: 'list',
-            name: 'tag',
-            message: 'Select a category/tag:',
-            choices: [...tags, new inquirer.Separator(), 'Create new tag'],
-            pageSize: 10
+    const config = getUserConfig();
+    const useEditor = config.editor && config.editor !== 'cli';
+
+    if (useEditor && config.editor) {
+        process.env.VISUAL = resolveEditorCommand(config.editor);
+    }
+
+    // Step 1: Error message
+    const errorAnswer = await inquirer.prompt([{
+        type: useEditor ? 'editor' : 'input',
+        name: 'errorMsg',
+        message: 'Bug error message:',
+        validate: (input: string) => {
+            if (!input.trim()) return 'Error message cannot be empty.';
+            return true;
         }
-    ]);
+    }] as any);
 
-    let selectedTag = answers.tag;
+    // Step 2: Solution
+    const solutionAnswer = await inquirer.prompt([{
+        type: useEditor ? 'editor' : 'input',
+        name: 'solutionMsg',
+        message: 'Bug solution:',
+    }] as any);
 
-    if (selectedTag === 'Create new tag') {
-        const newTagAnswer = await inquirer.prompt([
-            {
-                type: 'input',
-                name: 'newTagName',
-                message: 'Enter new tag name:'
-            }
-        ]);
+    // Step 3: Priority
+    const priorityAnswer = await inquirer.prompt([{
+        type: 'list',
+        name: 'priority',
+        message: 'Priority:',
+        choices: [
+            { name: 'Low', value: 'Low' },
+            { name: 'Medium', value: 'Medium' },
+            { name: 'High', value: 'High' }
+        ],
+        default: 'Medium'
+    }] as any);
+
+    // Step 4: Related files
+    const filesAnswer = await inquirer.prompt([{
+        type: 'input',
+        name: 'files',
+        message: 'Related files (comma separated, optional):'
+    }]);
+
+    // Step 5: Tag
+    const tags = await getTags();
+    const tagChoices = [
+        ...tags.map(t => ({ name: t, value: t })),
+        { name: '── Create new tag ──', value: '__new_tag__' }
+    ];
+
+    const tagAnswer = await inquirer.prompt([{
+        type: 'list',
+        name: 'tag',
+        message: 'Select a category/tag:',
+        choices: tagChoices,
+        pageSize: 10
+    }] as any);
+
+    let selectedTag = tagAnswer.tag;
+
+    if (selectedTag === '__new_tag__') {
+        const newTagAnswer = await inquirer.prompt([{
+            type: 'input',
+            name: 'newTagName',
+            message: 'Enter new tag name:'
+        }]);
 
         const sanitized = sanitizeTagName(newTagAnswer.newTagName);
         if (sanitized) {
@@ -74,17 +94,17 @@ export const handleAdd = async () => {
         }
     }
 
-    const inputFiles = answers.files ? answers.files.split(',').map((f: string) => f.trim()).filter((f: string) => f.length > 0) : [];
+    const inputFiles = filesAnswer.files ? filesAnswer.files.split(',').map((f: string) => f.trim()).filter((f: string) => f.length > 0) : [];
     const files = validateFilePaths(inputFiles);
 
     const newBug: Bug = {
         id: generateId(),
         timestamp: new Date().toLocaleString(),
         category: selectedTag,
-        error: sanitizeInput(answers.errorMsg),
-        solution: sanitizeInput(answers.solutionMsg),
+        error: sanitizeInput(errorAnswer.errorMsg),
+        solution: sanitizeInput(solutionAnswer.solutionMsg),
         status: 'Open',
-        priority: answers.priority,
+        priority: priorityAnswer.priority,
         files: files
     };
 

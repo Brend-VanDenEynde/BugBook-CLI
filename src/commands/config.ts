@@ -25,4 +25,5 @@ export const config = async (args: string[]): Promise<void> => {
 
     console.log(chalk.yellow('Usage: bugbook config <key> <value>'));
     console.log(chalk.yellow('Example: bugbook config user.name "John Doe"'));
+    console.log(chalk.yellow('Example: bugbook config editor "code --wait"'));
 };

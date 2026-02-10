@@ -22,15 +22,13 @@ export const handleDelete = async (argStr: string) => {
             value: b.id
         }));
 
-        const answer = await inquirer.prompt([
-            {
-                type: 'list',
-                name: 'selectedId',
-                message: 'Select a bug to delete:',
-                choices,
-                pageSize: 10
-            }
-        ]);
+        const answer = await inquirer.prompt([{
+            type: 'list',
+            name: 'selectedId',
+            message: 'Select a bug to delete:',
+            choices,
+            pageSize: 10
+        }] as any);
         bugId = answer.selectedId;
     }
 
@@ -41,16 +39,14 @@ export const handleDelete = async (argStr: string) => {
         return;
     }
 
-    const { confirm } = await inquirer.prompt([
-        {
-            type: 'confirm',
-            name: 'confirm',
-            message: `Are you sure you want to delete bug [${bugs[bugIndex].id}]?`,
-            default: false
-        }
-    ]);
+    const confirmAnswer = await inquirer.prompt([{
+        type: 'confirm',
+        name: 'confirm',
+        message: `Are you sure you want to delete bug [${bugs[bugIndex].id}]?`,
+        default: false
+    }]);
 
-    if (confirm) {
+    if (confirmAnswer.confirm) {
         await deleteBug(bugs[bugIndex].id);
         console.log(chalk.green(`Bug [${bugId}] deleted successfully.`));
     } else {

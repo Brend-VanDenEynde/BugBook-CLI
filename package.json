@@ -1,6 +1,6 @@
 {
   "name": "bugbook",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A friendly CLI bug tracking tool for developers",
   "main": "dist/index.js",
   "bin": {
@@ -38,6 +38,6 @@
     "chalk": "^4.1.2",
     "figlet": "^1.10.0",
     "fuse.js": "^7.1.0",
-    "inquirer": "^8.2.7"
+    "inquirer": "^8.2.6"
   }
 }

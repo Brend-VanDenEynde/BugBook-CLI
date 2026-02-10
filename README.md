@@ -11,6 +11,10 @@
 -   **Structured Storage**: Bug reports are saved in `bugs.json`, allowing for better data integrity and future integrations.
 -   **Tagging System**: Organize bugs by categories (e.g., specific files, modules, or types of errors).
 -   **Search Functionality**: Quickly find past solutions by error message, ID, or content.
+-   **Configurable Editor**: Set your preferred text editor (VS Code, Vim, etc.) for detailed bug descriptions.
+-   **Interactive Install**: Guided setup for user details and preferences.
+-   **Export Capabilities**: Export your bug database to a Markdown report (`BUGS.md`).
+-   **Validations**: Warnings for non-existent files in bug reports.
 -   **Interactive CLI**: Easy-to-use command-line interface with prompts.
 
 ## Installation

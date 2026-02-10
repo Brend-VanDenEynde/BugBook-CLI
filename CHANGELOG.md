@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-02-10
+
+### Added
+- **Configurable Editor**: Users can now set their preferred editor (VS Code, Vim, Nano, etc.) using `bugbook config editor "cmd"`.
+- **Interactive Install**: `bugbook install` now prompts for user name and editor preference if not set.
+- **Richer Search**: Search now includes `priority` and `relatedFiles`.
+- **File Validation**: `add` and `edit` commands warn if related files do not exist.
+- **Improved Testing**: Added integration tests for commands and file validation logic.
+
 ## [0.2.0] - 2026-02-10
 
 ### Added

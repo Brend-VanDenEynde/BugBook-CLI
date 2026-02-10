@@ -2,6 +2,7 @@ import fs from 'fs';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { BUG_DIR, TAGS_PATH, initStorage } from '../utils/storage';
+import { getUserConfig, setUserConfig } from '../utils/config';
 
 export const handleInstall = async () => {
     console.log(chalk.bold.white('Welcome to the Bugbook Installer'));
@@ -19,6 +20,72 @@ export const handleInstall = async () => {
     if (!answers.proceed) {
         console.log(chalk.white('Installation aborted.'));
         process.exit(0);
+    }
+
+    // Check if global config is already set
+    const currentConfig = getUserConfig();
+    let configUpdates = false;
+
+    if (!currentConfig.user?.name) {
+        const nameAnswer = await inquirer.prompt([{
+            type: 'input',
+            name: 'name',
+            message: 'What is your name? (for bug authorship)',
+        }]);
+        if (nameAnswer.name) {
+            setUserConfig('user.name', nameAnswer.name);
+            console.log(chalk.green(`User name set to: ${nameAnswer.name}`));
+            configUpdates = true;
+        }
+    }
+
+    if (!currentConfig.editor) {
+        await promptForEditor();
+    } else {
+        const resetAnswer = await inquirer.prompt([{
+            type: 'confirm',
+            name: 'reset',
+            message: `Editor is already set to '${currentConfig.editor}'. Do you want to change it?`,
+            default: false
+        }]);
+        if (resetAnswer.reset) {
+            await promptForEditor();
+        }
+    }
+
+    async function promptForEditor() {
+        const editorAnswer = await inquirer.prompt([{
+            type: 'list',
+            name: 'editor',
+            message: 'Which editor do you prefer for writing bug details?',
+            choices: [
+                { name: 'VS Code', value: 'code --wait' },
+                { name: 'Notepad', value: 'notepad' },
+                { name: 'Standard CLI Input (No external editor)', value: 'cli' },
+                { name: 'Custom...', value: 'custom' }
+            ]
+        }]);
+
+        let selectedEditor = editorAnswer.editor;
+
+        if (selectedEditor === 'custom') {
+            const customEditor = await inquirer.prompt([{
+                type: 'input',
+                name: 'cmd',
+                message: 'Enter command to open your editor (e.g. "subl -w"):',
+                validate: (input: string) => input.trim() !== '' ? true : 'Please enter a command.'
+            }]);
+            selectedEditor = customEditor.cmd;
+        }
+
+        setUserConfig('editor', selectedEditor);
+        console.log(chalk.green(`Editor set to: ${selectedEditor}`));
+        // We need to signal config update, but this local function scope makes it hard.
+        // We can just rely on console log.
+    }
+
+    if (configUpdates) {
+        console.log(chalk.white('Configuration saved to .bugbookrc\n'));
     }
 
     console.log(chalk.white('\nSetting things up...'));

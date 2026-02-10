@@ -22,15 +22,13 @@ export const handleResolve = async (argStr: string) => {
             value: b.id
         }));
 
-        const answer = await inquirer.prompt([
-            {
-                type: 'list',
-                name: 'selectedId',
-                message: 'Select a bug to resolve/re-open:',
-                choices,
-                pageSize: 10
-            }
-        ]);
+        const answer = await inquirer.prompt([{
+            type: 'list',
+            name: 'selectedId',
+            message: 'Select a bug to resolve/re-open:',
+            choices,
+            pageSize: 10
+        }] as any);
         bugId = answer.selectedId;
     }
 
