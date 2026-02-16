@@ -397,3 +397,19 @@ export const warnMissingFiles = (paths: string[]): string[] => {
 
 /** @deprecated Use warnMissingFiles instead */
 export const validateFilePaths = warnMissingFiles;
+
+/**
+ * Fast retrieval of all bug IDs (reads filenames only, not file contents).
+ * Used for shell auto-completion.
+ */
+export const getAllBugIds = async (): Promise<string[]> => {
+    if (!existsSync(getBugsDirPath())) return [];
+    try {
+        const files = await fs.readdir(getBugsDirPath());
+        return files
+            .filter(f => f.startsWith('BUG-') && f.endsWith('.json'))
+            .map(f => f.replace('BUG-', '').replace('.json', ''));
+    } catch {
+        return [];
+    }
+};

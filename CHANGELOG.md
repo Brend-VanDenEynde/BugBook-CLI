@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Shell Auto-Completion** - Tab completion for commands and bug IDs
+  - `bugbook completion install` - Interactive shell selection for installation
+  - `bugbook completion setup` - Quick auto-detect and setup
+  - `bugbook completion generate` - Generate script for manual installation
+  - `bugbook completion uninstall` - Show uninstallation instructions
+  - Supports bash, zsh, and fish shells
+  - Dynamic bug ID completion for edit, delete, resolve, and comment commands
+  - Flag completion for list and resolve commands
+- **Bulk Resolve Command** - Resolve multiple bugs at once
+  - Support for multiple bug IDs: `bugbook resolve ID1 ID2 ID3`
+  - `--all-tagged <tag>` - Resolve all bugs with a specific tag
+  - `--all-status <Open|Resolved>` - Filter by bug status
+  - `-y` / `--no-confirm` - Skip confirmation prompt
+  - Combined filters support (e.g., all Open bugs tagged Backend)
+  - Progress feedback for each bug
+  - Summary with success/failure counts
+  - Validation of all IDs before processing
+- **List Filtering & Sorting** - Advanced bug list filtering and sorting
+  - `--priority <High|Medium|Low>` - Filter by priority level
+  - `--status <Open|Resolved>` - Filter by bug status
+  - `--tagged <tag>` - Filter by category/tag
+  - `--author <name>` - Filter by author (partial match)
+  - `--sort <priority|date|status|dueDate|id>` - Sort by field
+  - `--order <asc|desc>` - Sort order (default: desc for most fields, asc for dueDate)
+  - `--limit <N>` - Limit number of results shown
+  - Multiple filters use AND logic
+  - Display active filters and counts in header
 - **GitHub Integration (Phase 1)** - Sync bugs to GitHub Issues
   - `bugbook github auth` - Authenticate with GitHub Personal Access Token
   - `bugbook github status` - Show sync status and pending bugs
