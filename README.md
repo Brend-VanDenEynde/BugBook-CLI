@@ -14,10 +14,11 @@
 -   **Tagging System**: Organize bugs by categories (e.g., specific files, modules, or types of errors).
 -   **Fuzzy Search**: Quickly find past solutions by error message, ID, priority, or file name.
 -   **Configurable Editor**: Set your preferred text editor (VS Code, Notepad, Vim, etc.) for detailed bug descriptions.
--   **Interactive Install**: Guided setup for user details and preferences.
+-   **Interactive Init**: Guided setup for user details and preferences.
 -   **Export**: Export your bug database to a Markdown report (`BUGS.md`).
 -   **Statistics**: Get an overview of open, resolved, and overdue bugs.
 -   **Interactive CLI**: Easy-to-use command-line interface with prompts.
+-   **GitHub Integration** ✨ NEW: Sync bugs to GitHub Issues with one command! Requires GitHub token with `repo` scope. See [GitHub Integration Guide](./GITHUB_INTEGRATION.md)
 
 ## Installation
 
@@ -53,7 +54,7 @@ After linking, you can run the tool directly.
 Navigate to your project directory and run:
 
 ```bash
-bugbook install
+bugbook init
 ```
 
 This creates a `.bugbook` folder where your bugs and tags will be stored.
@@ -78,7 +79,7 @@ bugbook <command> [arguments]
 
 | Command | Description |
 | :--- | :--- |
-| `install` | Initialize Bugbook in the current directory. |
+| `init` | Initialize Bugbook in the current directory. |
 | `add` | Report a new bug with error, solution, priority, files, and due date. |
 | `list` | Show the last 5 reported bugs with overdue warnings. |
 | `search [query]` | Fuzzy search for bugs by ID, text, priority, or file name. |
@@ -98,7 +99,7 @@ bugbook <command> [arguments]
     
 **Initialize (First time only):**
 ```bash
-bugbook install
+bugbook init
 ```
 
 **Adding a Bug:**

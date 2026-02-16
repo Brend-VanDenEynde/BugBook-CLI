@@ -2,6 +2,46 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- **GitHub Integration (Phase 1)** - Sync bugs to GitHub Issues
+  - `bugbook github auth` - Authenticate with GitHub Personal Access Token
+  - `bugbook github status` - Show sync status and pending bugs
+  - `bugbook github push` - Push open bugs to GitHub Issues
+  - Auto-detect repository from `.git/config`
+  - Dry-run mode with `--dry-run` flag
+  - Force re-push with `--force` flag
+  - Store GitHub issue metadata in bugs (issue number, URL, last synced)
+  - Auto-create labels from bug categories and priorities
+- **Security Hardening** (1 HIGH, 4 MEDIUM vulnerabilities fixed)
+  - Fixed vulnerable `tmp` dependency via `npm audit fix`
+  - Added `validateBugId()` to prevent path traversal attacks
+  - Added export path validation to prevent writing outside cwd
+  - Sanitized shell metacharacters in editor commands
+  - Expanded system directory blocklist
+  - Replaced verbose error dumps with safe error messages
+- **Test Coverage Expansion** (+22 new tests, 39 total)
+  - Added security tests for `validateBugId()`
+  - Added tests for storage utilities and command functions
+  - Added tests for GitHub integration
+- **Documentation & Planning**
+  - Created `ideas/` folder with roadmap and feature specs
+  - Added comprehensive GitHub integration documentation
+  - Added quick start guide for GitHub features
+
+### Changed
+- Bug interface extended with GitHub metadata fields
+- Config interface extended to support GitHub settings
+- System directory blocklist expanded from 6 to 13 directories
+
+### Security
+- **HIGH**: Fixed path traversal vulnerability in bug ID handling
+- **MEDIUM**: Fixed export path validation (prevent writes outside cwd)
+- **MEDIUM**: Sanitized editor command input (prevent shell injection)
+- **MEDIUM**: Fixed vulnerable `tmp` dependency (CVE GHSA-52f5-9888-hmc6)
+- **LOW**: Replaced `console.dir(err)` to prevent info disclosure
+
 ## [0.4.3] - 2026-02-10
 
 ### Code Quality
@@ -18,7 +58,7 @@ All notable changes to this project will be documented in this file.
 - **Lazy initialization**: `validateCwd()` no longer runs on module import — paths are computed on first access via getter functions (`getBugDirPath()`, `getBugsDirPath()`, `getTagsPath()`). Improves testability.
 - **Consistent bug IDs**: All bug IDs are now normalized to uppercase consistently in `saveBug()`, `deleteBug()`, and `getBugById()`.
 - **Clearer API**: Renamed `validateFilePaths()` → `warnMissingFiles()` to accurately reflect its behavior (warns but always returns all paths). Old name available as deprecated alias.
-- **No more process.exit()**: Removed all `process.exit()` calls from `install.ts` — the command handler now returns naturally.
+- **No more process.exit()**: Removed all `process.exit()` calls from `init.ts` — the command handler now returns naturally.
 
 ## [0.4.1] - 2026-02-10
 
@@ -41,7 +81,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - **Configurable Editor**: Users can now set their preferred editor (VS Code, Vim, Nano, etc.) using `bugbook config editor "cmd"`.
-- **Interactive Install**: `bugbook install` now prompts for user name and editor preference if not set.
+- **Interactive Init**: `bugbook init` now prompts for user name and editor preference if not set.
 - **Richer Search**: Search now includes `priority` and `relatedFiles`.
 - **File Validation**: `add` and `edit` commands warn if related files do not exist.
 - **Improved Testing**: Added integration tests for commands and file validation logic.

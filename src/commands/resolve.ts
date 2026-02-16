@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { getBugs, saveBug, ensureProjectInit } from '../utils/storage';
+import { getBugs, saveBug, ensureProjectInit, validateBugId } from '../utils/storage';
 import { selectBugPrompt } from '../utils/prompts';
 
 export const handleResolve = async (argStr: string) => {
@@ -9,6 +9,12 @@ export const handleResolve = async (argStr: string) => {
     }
 
     let bugId = argStr.trim();
+
+    if (bugId && !validateBugId(bugId)) {
+        console.error(chalk.red('Error: Invalid bug ID format.'));
+        return;
+    }
+
     const bugs = await getBugs();
 
     if (bugs.length === 0) {

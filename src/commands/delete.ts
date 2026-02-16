@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { getBugs, deleteBug, ensureProjectInit } from '../utils/storage';
+import { getBugs, deleteBug, ensureProjectInit, validateBugId } from '../utils/storage';
 import { selectBugPrompt } from '../utils/prompts';
 
 export const handleDelete = async (argStr: string) => {
@@ -10,6 +10,12 @@ export const handleDelete = async (argStr: string) => {
     }
 
     let bugId = argStr.trim();
+
+    if (bugId && !validateBugId(bugId)) {
+        console.error(chalk.red('Error: Invalid bug ID format.'));
+        return;
+    }
+
     const bugs = await getBugs();
 
     if (bugs.length === 0) {

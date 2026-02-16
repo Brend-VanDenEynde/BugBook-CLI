@@ -12,6 +12,13 @@ export interface UserConfig {
         email?: string;
     };
     editor?: string;
+    github?: {
+        token?: string;
+        owner?: string;
+        repo?: string;
+        auto_labels?: boolean;
+        label_prefix?: string;
+    };
 }
 
 export const getUserConfig = (): UserConfig => {
@@ -26,18 +33,25 @@ export const getUserConfig = (): UserConfig => {
     }
 };
 
-export const setUserConfig = (key: string, value: string): void => {
+export const setUserConfig = (key: string, value: string | boolean): void => {
     const config = getUserConfig();
     const parts = key.split('.');
 
     if (parts.length === 2 && parts[0] === 'user') {
         if (!config.user) config.user = {};
-        if (parts[1] === 'name') config.user.name = value;
-        if (parts[1] === 'email') config.user.email = value;
+        if (parts[1] === 'name') config.user.name = value as string;
+        if (parts[1] === 'email') config.user.email = value as string;
+    } else if (parts.length === 2 && parts[0] === 'github') {
+        if (!config.github) config.github = {};
+        if (parts[1] === 'token') config.github.token = value as string;
+        if (parts[1] === 'owner') config.github.owner = value as string;
+        if (parts[1] === 'repo') config.github.repo = value as string;
+        if (parts[1] === 'auto_labels') config.github.auto_labels = value as boolean;
+        if (parts[1] === 'label_prefix') config.github.label_prefix = value as string;
     } else if (key === 'editor') {
-        config.editor = value;
+        config.editor = value as string;
     } else {
-        throw new Error('Invalid config key. Supported keys: user.name, user.email, editor');
+        throw new Error('Invalid config key. Supported keys: user.name, user.email, editor, github.*');
     }
 
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), { mode: 0o600 });
@@ -48,6 +62,12 @@ export const setUserConfig = (key: string, value: string): void => {
  * Specifically handles 'code' on Windows by wrapping it in 'cmd /c' to execute the batch file.
  */
 export const resolveEditorCommand = (editor: string): string => {
+    const unsafeChars = /[;&|`$(){}]/g;
+    if (unsafeChars.test(editor)) {
+        console.warn('Warning: Unsafe characters detected in editor command and will be stripped.');
+        editor = editor.replace(unsafeChars, '');
+    }
+
     if (process.platform === 'win32' && (editor === 'code' || editor.startsWith('code '))) {
         // Wrap VS Code in cmd /c to ensure batch file execution on Windows via spawn
         // e.g. "code --wait" -> "cmd /c code --wait"

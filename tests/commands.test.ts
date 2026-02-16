@@ -1,7 +1,8 @@
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { generateMarkdown } from '../src/commands/export';
 import { warnMissingFiles, validateDateStr, isOverdue, Bug } from '../src/utils/storage';
+import { resolveEditorCommand } from '../src/utils/config';
 import { existsSync } from 'fs';
 
 // Mock fs
@@ -187,6 +188,47 @@ describe('Command Integration Tests', () => {
             expect(md).toContain('Found root cause');
             expect(md).toContain('(Dev)');
             expect(md).toContain('Comments');
+        });
+    });
+
+    describe('generateMarkdown (special characters)', () => {
+        it('should handle special characters in content', () => {
+            const bugs: Bug[] = [{
+                id: 'SPECIAL',
+                timestamp: '2023-01-01',
+                category: 'Test<script>',
+                error: 'Error with "quotes" & <brackets>',
+                solution: 'Use `backticks` and **bold**',
+                status: 'Open'
+            }];
+
+            const md = generateMarkdown(bugs);
+            expect(md).toContain('Error with "quotes" & <brackets>');
+            expect(md).toContain('Use `backticks` and **bold**');
+            expect(md).toContain('Test<script>');
+        });
+    });
+
+    describe('resolveEditorCommand', () => {
+        const originalPlatform = process.platform;
+
+        afterEach(() => {
+            Object.defineProperty(process, 'platform', { value: originalPlatform });
+        });
+
+        it('should wrap "code" with cmd /c on Windows', () => {
+            Object.defineProperty(process, 'platform', { value: 'win32' });
+            expect(resolveEditorCommand('code')).toBe('cmd /c code');
+        });
+
+        it('should wrap "code --wait" with cmd /c on Windows', () => {
+            Object.defineProperty(process, 'platform', { value: 'win32' });
+            expect(resolveEditorCommand('code --wait')).toBe('cmd /c code --wait');
+        });
+
+        it('should pass through non-code editors unchanged on non-Windows', () => {
+            Object.defineProperty(process, 'platform', { value: 'linux' });
+            expect(resolveEditorCommand('vim')).toBe('vim');
         });
     });
 });

@@ -23,7 +23,7 @@ const getSafeCwd = (): string => {
     if (_safeCwd) return _safeCwd;
     const cwd = process.cwd();
     const normalized = path.resolve(cwd);
-    const systemDirs = ['/etc', '/usr', '/bin', '/sbin', 'C:\\Windows', 'C:\\Program Files'];
+    const systemDirs = ['/etc', '/usr', '/bin', '/sbin', '/var', '/boot', '/lib', '/proc', '/sys', 'C:\\Windows', 'C:\\Program Files', 'C:\\Program Files (x86)', 'C:\\ProgramData'];
     for (const sysDir of systemDirs) {
         if (normalized.toLowerCase().startsWith(sysDir.toLowerCase())) {
             throw new Error(`Cannot initialize bugbook in system directory: ${normalized}`);
@@ -68,6 +68,10 @@ export interface Bug {
     files?: string[];
     comments?: BugComment[];
     dueDate?: string; // YYYY-MM-DD
+    // GitHub integration
+    github_issue_number?: number;
+    github_issue_url?: string;
+    last_synced?: string; // ISO timestamp
 }
 
 export const ensureProjectInit = (): boolean => {
@@ -250,6 +254,10 @@ export const generateId = (): string => {
 
 export const sanitizeInput = (input: string): string => {
     return input.substring(0, MAX_INPUT_LENGTH).trim();
+};
+
+export const validateBugId = (id: string): boolean => {
+    return /^[A-Fa-f0-9]{1,8}$/i.test(id.trim());
 };
 
 export const sanitizeTagName = (tag: string): string => {

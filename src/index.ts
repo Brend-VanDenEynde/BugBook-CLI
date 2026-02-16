@@ -6,7 +6,7 @@ import fs from 'fs';
 import packageJson from '../package.json';
 import { BUG_DIR } from './utils/storage';
 
-import { handleInstall } from './commands/install';
+import { handleInit } from './commands/init';
 import { handleAdd } from './commands/add';
 import { handleList } from './commands/list';
 import { handleSearch } from './commands/search';
@@ -19,9 +19,11 @@ import { handleStats } from './commands/stats';
 import { handleExport } from './commands/export';
 import { handleComment } from './commands/comment';
 import { config } from './commands/config';
+import { handleGitHub } from './commands/github';
 
 const printHelp = (includeQuit = false) => {
     console.log(chalk.bold.white('Available commands:'));
+    console.log(`  ${chalk.white('init')}     - Initialize Bugbook in the current directory`);
     console.log(`  ${chalk.white('add')}      - Add a new bug entry`);
     console.log(`  ${chalk.white('list')}     - Show the last 5 bugs`);
     console.log(`  ${chalk.white('search')}   - Search bugs (fuzzy) by ID or text`);
@@ -35,6 +37,7 @@ const printHelp = (includeQuit = false) => {
     console.log(`  ${chalk.white('export')}   - Export bugs to Markdown (default: BUGS.md)`);
     console.log(`  ${chalk.white('version')}  - Show version information`);
     console.log(`  ${chalk.white('config')}   - View or set global configuration`);
+    console.log(`  ${chalk.white('github')}   - GitHub Issues integration (auth, push, status)`);
     if (includeQuit) {
         console.log(`  ${chalk.white('quit')}     - Exit the application`);
     } else {
@@ -51,9 +54,9 @@ const executeCommand = async (command: string, argStr: string, isInteractive: bo
                 process.exit(0);
             }
             return false;
-        case 'install':
+        case 'init':
             if (!isInteractive) {
-                await handleInstall();
+                await handleInit();
             }
             return true;
         case 'add':
@@ -97,6 +100,10 @@ const executeCommand = async (command: string, argStr: string, isInteractive: bo
             const configArgs = argStr ? argStr.split(' ') : [];
             await config(configArgs);
             return true;
+        case 'github':
+            const githubArgs = argStr ? argStr.split(' ') : [];
+            await handleGitHub(githubArgs);
+            return true;
         case 'help':
             printHelp(isInteractive);
             return true;
@@ -127,8 +134,8 @@ main();
 
 function startApp() {
     if (!fs.existsSync(BUG_DIR)) {
-        console.log(chalk.red('\nBugbook is not installed in this directory.'));
-        console.log(chalk.white('Please run "bugbook install" first to set up.\n'));
+        console.log(chalk.red('\nBugbook is not initialized in this directory.'));
+        console.log(chalk.white('Please run "bugbook init" first to set up.\n'));
         process.exit(1);
     }
 
@@ -137,7 +144,7 @@ function startApp() {
     figlet('BUGBOOK', (err, data) => {
         if (err) {
             console.log(chalk.red('Something went wrong...'));
-            console.dir(err);
+            console.error(err instanceof Error ? err.message : 'Unknown error');
             return;
         }
         console.log(chalk.white(data));
