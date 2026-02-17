@@ -4,8 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-02-16
+
 ### Added
 - **Shell Auto-Completion** - Tab completion for commands and bug IDs
+  - **Automatic setup offered during `bugbook init`** - One-click installation
+  - Completion handler auto-initialized in main script (always responds to shell requests)
   - `bugbook completion install` - Interactive shell selection for installation
   - `bugbook completion setup` - Quick auto-detect and setup
   - `bugbook completion generate` - Generate script for manual installation

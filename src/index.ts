@@ -5,6 +5,7 @@ import chalk from 'chalk';
 import fs from 'fs';
 import packageJson from '../package.json';
 import { BUG_DIR } from './utils/storage';
+import { createCompletion } from './utils/completion';
 
 import { handleInit } from './commands/init';
 import { handleAdd } from './commands/add';
@@ -125,6 +126,10 @@ const executeCommand = async (command: string, argStr: string, isInteractive: bo
             return false;
     }
 };
+
+// Initialize completion handler (responds to shell completion requests)
+const completion = createCompletion();
+completion.init();
 
 const args = process.argv.slice(2);
 const command = args[0];

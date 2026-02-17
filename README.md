@@ -4,7 +4,7 @@
 
 ![License](https://img.shields.io/badge/license-ISC-blue.svg)
 ![TypeScript](https://img.shields.io/badge/language-TypeScript-blue.svg)
-![Version](https://img.shields.io/badge/version-0.4.3-green.svg)
+![Version](https://img.shields.io/badge/version-0.5.0-green.svg)
 
 ## Features
 
@@ -143,11 +143,15 @@ bugbook resolve --all-status Open --all-tagged Frontend -y
 ```
 
 **Setup Shell Completion:**
+
+Tab completion is offered automatically during `bugbook init`. You can also set it up manually:
+
 ```bash
-bugbook completion install
-# Or for quick auto-detect:
-bugbook completion setup
+bugbook completion setup     # Auto-detect shell and install
+bugbook completion install   # Interactive shell selection
 ```
+
+After setup, restart your terminal or run `source ~/.bashrc` (or `~/.zshrc` for zsh).
 
 ## Contributing
 

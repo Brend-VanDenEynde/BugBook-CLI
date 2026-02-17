@@ -107,6 +107,23 @@ export const handleInit = async () => {
         } else {
             console.log(chalk.white('\nBugbook is already initialized in this directory.'));
         }
+
+        // Offer to set up shell completions
+        const completionAnswer = await inquirer.prompt([{
+            type: 'confirm',
+            name: 'setupCompletion',
+            message: 'Would you like to set up shell tab completion?',
+            default: true
+        }]);
+
+        if (completionAnswer.setupCompletion) {
+            console.log(chalk.white('\nSetting up shell completion...'));
+            const { handleCompletionSetup } = await import('./completion');
+            await handleCompletionSetup();
+        } else {
+            console.log(chalk.gray('\nYou can set up shell completion later with:'));
+            console.log(chalk.cyan('  bugbook completion setup'));
+        }
     } catch (error) {
         console.log(chalk.red('Error: Failed to create files. Please check your permissions.'));
         if (error instanceof Error) {
