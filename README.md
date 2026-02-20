@@ -4,7 +4,7 @@
 
 ![License](https://img.shields.io/badge/license-ISC-blue.svg)
 ![TypeScript](https://img.shields.io/badge/language-TypeScript-blue.svg)
-![Version](https://img.shields.io/badge/version-0.4.3-green.svg)
+![Version](https://img.shields.io/badge/version-0.5.0-green.svg)
 
 ## Features
 
@@ -13,13 +13,23 @@
 -   **Comments**: Add timestamped notes to any bug for ongoing tracking.
 -   **Tagging System**: Organize bugs by categories (e.g., specific files, modules, or types of errors).
 -   **Fuzzy Search**: Quickly find past solutions by error message, ID, priority, or file name.
+-   **Advanced List Filtering & Sorting** ✨ NEW: Filter bugs by priority, status, tags, and author. Sort by priority, date, status, or due date.
+-   **Bulk Resolve Operations** ✨ NEW: Resolve multiple bugs at once with filtering support (by tag, status) and batch operations.
+-   **Shell Auto-Completion** ✨ NEW: Tab completion for commands and bug IDs in bash, zsh, and fish shells.
 -   **Configurable Editor**: Set your preferred text editor (VS Code, Notepad, Vim, etc.) for detailed bug descriptions.
--   **Interactive Install**: Guided setup for user details and preferences.
+-   **Interactive Init**: Guided setup for user details and preferences.
 -   **Export**: Export your bug database to a Markdown report (`BUGS.md`).
 -   **Statistics**: Get an overview of open, resolved, and overdue bugs.
 -   **Interactive CLI**: Easy-to-use command-line interface with prompts.
+-   **GitHub Integration**: Sync bugs to GitHub Issues with one command! Requires GitHub token with `repo` scope. See [GitHub Integration Guide](./GITHUB_INTEGRATION.md)
 
 ## Installation
+
+### From npm
+
+```bash
+npm install -g bugbook
+```
 
 ### From Source
 
@@ -46,14 +56,14 @@
 
 ## Usage
 
-After linking, you can run the tool directly.
+After installing, you can run the tool directly.
 
 ### 1. Initialize
 
 Navigate to your project directory and run:
 
 ```bash
-bugbook install
+bugbook init
 ```
 
 This creates a `.bugbook` folder where your bugs and tags will be stored.
@@ -78,19 +88,21 @@ bugbook <command> [arguments]
 
 | Command | Description |
 | :--- | :--- |
-| `install` | Initialize Bugbook in the current directory. |
+| `init` | Initialize Bugbook in the current directory. |
 | `add` | Report a new bug with error, solution, priority, files, and due date. |
-| `list` | Show the last 5 reported bugs with overdue warnings. |
+| `list [options]` | List bugs with filtering and sorting. Supports `--priority`, `--status`, `--tagged`, `--author`, `--sort`, `--order`, `--limit`. |
 | `search [query]` | Fuzzy search for bugs by ID, text, priority, or file name. |
 | `edit [ID]` | Edit an existing bug's details (error, solution, category, priority, files, due date). |
 | `delete [ID]` | Delete a bug by ID (with confirmation). |
-| `resolve [ID]` | Toggle a bug's status between Open and Resolved. |
+| `resolve [IDs] [options]` | Resolve/re-open bugs. Supports multiple IDs, `--all-tagged`, `--all-status`, `-y`/`--no-confirm`. |
 | `comment [ID]` | Add a timestamped comment/note to a bug. |
 | `stats` | Show an overview of bugs (Open, Resolved, Overdue, Top Categories). |
 | `tags` | List all available tags and their usage counts. |
 | `new-tag` | Create a new tag category. |
 | `export [--out file]` | Export bugs to a Markdown file (default: `BUGS.md`). |
 | `config [key] [value]` | View or set global configuration (user.name, editor). |
+| `github [subcommand]` | GitHub Issues integration (auth, push, status). |
+| `completion [subcommand]` | Setup shell auto-completion (install, setup, generate, uninstall). |
 | `version` | Show the current version of Bugbook. |
 | `help` | Display the help menu. |
 
@@ -98,7 +110,7 @@ bugbook <command> [arguments]
     
 **Initialize (First time only):**
 ```bash
-bugbook install
+bugbook init
 ```
 
 **Adding a Bug:**
@@ -121,6 +133,31 @@ bugbook comment ABC123
 ```bash
 bugbook export --out report.md
 ```
+
+**List Bugs with Filtering:**
+```bash
+bugbook list --priority High --status Open
+bugbook list --tagged Frontend --sort dueDate --order asc
+bugbook list --author john --limit 10
+```
+
+**Bulk Resolve Operations:**
+```bash
+bugbook resolve ABC123 DEF456 GHI789
+bugbook resolve --all-tagged Backend
+bugbook resolve --all-status Open --all-tagged Frontend -y
+```
+
+**Setup Shell Completion:**
+
+Tab completion is offered automatically during `bugbook init`. You can also set it up manually:
+
+```bash
+bugbook completion setup     # Auto-detect shell and install
+bugbook completion install   # Interactive shell selection
+```
+
+After setup, restart your terminal or run `source ~/.bashrc` (or `~/.zshrc` for zsh).
 
 ## Contributing
 

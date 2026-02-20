@@ -4,8 +4,8 @@ import inquirer from 'inquirer';
 import { BUG_DIR, getTagsPath, initStorage } from '../utils/storage';
 import { getUserConfig, setUserConfig } from '../utils/config';
 
-export const handleInstall = async () => {
-    console.log(chalk.bold.white('Welcome to the Bugbook Installer'));
+export const handleInit = async () => {
+    console.log(chalk.bold.white('Welcome to the Bugbook Initializer'));
     console.log(chalk.white('Setting up the necessary files for your bug tracking system.'));
 
     const answers = await inquirer.prompt([
@@ -18,7 +18,7 @@ export const handleInstall = async () => {
     ]);
 
     if (!answers.proceed) {
-        console.log(chalk.white('Installation aborted.'));
+        console.log(chalk.white('Initialization aborted.'));
         return;
     }
 
@@ -103,9 +103,26 @@ export const handleInstall = async () => {
         }
 
         if (created) {
-            console.log(chalk.green('\nBugbook has been successfully installed.'));
+            console.log(chalk.green('\nBugbook has been successfully initialized.'));
         } else {
-            console.log(chalk.white('\nBugbook is already installed in this directory.'));
+            console.log(chalk.white('\nBugbook is already initialized in this directory.'));
+        }
+
+        // Offer to set up shell completions
+        const completionAnswer = await inquirer.prompt([{
+            type: 'confirm',
+            name: 'setupCompletion',
+            message: 'Would you like to set up shell tab completion?',
+            default: true
+        }]);
+
+        if (completionAnswer.setupCompletion) {
+            console.log(chalk.white('\nSetting up shell completion...'));
+            const { handleCompletionSetup } = await import('./completion');
+            await handleCompletionSetup();
+        } else {
+            console.log(chalk.gray('\nYou can set up shell completion later with:'));
+            console.log(chalk.cyan('  bugbook completion setup'));
         }
     } catch (error) {
         console.log(chalk.red('Error: Failed to create files. Please check your permissions.'));

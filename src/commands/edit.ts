@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { getBugs, saveBug, getTags, ensureProjectInit, sanitizeInput, addTag, sanitizeTagName, warnMissingFiles, validateDateStr, MAX_INPUT_LENGTH } from '../utils/storage';
+import { getBugs, saveBug, getTags, ensureProjectInit, sanitizeInput, addTag, sanitizeTagName, warnMissingFiles, validateDateStr, validateBugId, MAX_INPUT_LENGTH } from '../utils/storage';
 import { setupEditor } from '../utils/config';
 import { selectBugPrompt } from '../utils/prompts';
 
@@ -11,6 +11,12 @@ export const handleEdit = async (argStr: string) => {
     }
 
     let bugId = argStr.trim();
+
+    if (bugId && !validateBugId(bugId)) {
+        console.error(chalk.red('Error: Invalid bug ID format.'));
+        return;
+    }
+
     const bugs = await getBugs();
 
     if (bugs.length === 0) {
