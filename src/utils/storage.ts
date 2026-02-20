@@ -71,6 +71,7 @@ export interface Bug {
     // GitHub integration
     github_issue_number?: number;
     github_issue_url?: string;
+    github_issue_closed?: boolean;
     last_synced?: string; // ISO timestamp
 }
 

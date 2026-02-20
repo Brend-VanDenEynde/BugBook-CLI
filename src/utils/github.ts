@@ -231,3 +231,15 @@ export const closeGitHubIssue = async (
 ): Promise<void> => {
     await githubRequest('PATCH', `/repos/${owner}/${repo}/issues/${issueNumber}`, token, { state: 'closed' });
 };
+
+/**
+ * Reopen a closed GitHub issue
+ */
+export const reopenGitHubIssue = async (
+    issueNumber: number,
+    owner: string,
+    repo: string,
+    token: string
+): Promise<void> => {
+    await githubRequest('PATCH', `/repos/${owner}/${repo}/issues/${issueNumber}`, token, { state: 'open' });
+};

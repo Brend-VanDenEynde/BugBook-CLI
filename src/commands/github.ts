@@ -237,6 +237,7 @@ export const handleGitHubPush = async (args: string[]) => {
             // Update bug with GitHub metadata
             bug.github_issue_number = issue.number;
             bug.github_issue_url = issue.html_url;
+            bug.github_issue_closed = false;
             bug.last_synced = new Date().toISOString();
             await saveBug(bug);
 

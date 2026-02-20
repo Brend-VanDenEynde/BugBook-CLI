@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { getBugs, saveBug, ensureProjectInit, validateBugId, Bug, BugStatus } from '../utils/storage';
 import { selectBugPrompt } from '../utils/prompts';
+import { getGitHubConfig, closeGitHubIssue, reopenGitHubIssue } from '../utils/github';
 
 interface ResolveOptions {
     bugIds: string[];
@@ -40,11 +41,34 @@ const parseResolveArgs = (argStr: string): ResolveOptions => {
     return options;
 };
 
-const resolveSingleBug = async (bug: Bug): Promise<{ success: boolean; newStatus: BugStatus }> => {
+const resolveSingleBug = async (bug: Bug): Promise<{ success: boolean; newStatus: BugStatus; githubClosed?: boolean }> => {
     const newStatus: BugStatus = bug.status === 'Open' ? 'Resolved' : 'Open';
     bug.status = newStatus;
+
+    let githubClosed: boolean | undefined;
+
+    // Auto-close or reopen the linked GitHub issue if configured
+    if (bug.github_issue_number) {
+        const githubConfig = getGitHubConfig();
+        if (githubConfig.token && githubConfig.owner && githubConfig.repo) {
+            try {
+                if (newStatus === 'Resolved') {
+                    await closeGitHubIssue(bug.github_issue_number, githubConfig.owner, githubConfig.repo, githubConfig.token);
+                    bug.github_issue_closed = true;
+                    githubClosed = true;
+                } else {
+                    await reopenGitHubIssue(bug.github_issue_number, githubConfig.owner, githubConfig.repo, githubConfig.token);
+                    bug.github_issue_closed = false;
+                    githubClosed = false;
+                }
+            } catch {
+                // Non-fatal: GitHub sync failed, local status still saved
+            }
+        }
+    }
+
     await saveBug(bug);
-    return { success: true, newStatus };
+    return { success: true, newStatus, githubClosed };
 };
 
 export const handleResolve = async (argStr: string) => {
@@ -76,6 +100,10 @@ export const handleResolve = async (argStr: string) => {
         const result = await resolveSingleBug(bug);
         const icon = result.newStatus === 'Resolved' ? '✅' : '🔴';
         console.log(chalk.green(`Bug [${bug.id}] status updated to: ${icon} ${result.newStatus}`));
+        if (bug.github_issue_number !== undefined && result.githubClosed !== undefined) {
+            const ghStatus = result.githubClosed ? 'closed' : 'reopened';
+            console.log(chalk.gray(`  GitHub issue #${bug.github_issue_number} ${ghStatus}`));
+        }
         return;
     }
 
@@ -171,7 +199,12 @@ export const handleResolve = async (argStr: string) => {
         try {
             const result = await resolveSingleBug(bug);
             const icon = result.newStatus === 'Resolved' ? '✅' : '🔴';
-            console.log(chalk.green(`✓ [${bug.id}] Status updated to: ${icon} ${result.newStatus}`));
+            let line = chalk.green(`✓ [${bug.id}] Status updated to: ${icon} ${result.newStatus}`);
+            if (bug.github_issue_number !== undefined && result.githubClosed !== undefined) {
+                const ghStatus = result.githubClosed ? 'closed' : 'reopened';
+                line += chalk.gray(` (GitHub #${bug.github_issue_number} ${ghStatus})`);
+            }
+            console.log(line);
             results.success++;
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : 'Unknown error';
