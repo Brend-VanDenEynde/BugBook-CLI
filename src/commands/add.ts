@@ -5,8 +5,8 @@ import { setupEditor } from '../utils/config';
 
 export const handleAdd = async () => {
     if (!ensureProjectInit()) {
-        console.error(chalk.red('Error: Bugbook is not installed in this directory.'));
-        console.log(chalk.white('Run "bugbook install" first.'));
+        console.error(chalk.red('Error: Bugbook is not initialized in this directory.'));
+        console.log(chalk.white('Run "bugbook init" first.'));
         return;
     }
 

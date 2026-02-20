@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { getBugs, addComment, getBugById, ensureProjectInit, MAX_INPUT_LENGTH, displayBug } from '../utils/storage';
+import { getBugs, addComment, getBugById, ensureProjectInit, validateBugId, MAX_INPUT_LENGTH, displayBug } from '../utils/storage';
 import { setupEditor } from '../utils/config';
 import { selectBugPrompt } from '../utils/prompts';
 
@@ -11,6 +11,12 @@ export const handleComment = async (argStr: string) => {
     }
 
     let bugId = argStr.trim();
+
+    if (bugId && !validateBugId(bugId)) {
+        console.error(chalk.red('Error: Invalid bug ID format.'));
+        return;
+    }
+
     const bugs = await getBugs();
 
     if (bugs.length === 0) {

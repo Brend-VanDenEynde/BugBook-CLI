@@ -5,8 +5,9 @@ import chalk from 'chalk';
 import fs from 'fs';
 import packageJson from '../package.json';
 import { BUG_DIR } from './utils/storage';
+import { createCompletion } from './utils/completion';
 
-import { handleInstall } from './commands/install';
+import { handleInit } from './commands/init';
 import { handleAdd } from './commands/add';
 import { handleList } from './commands/list';
 import { handleSearch } from './commands/search';
@@ -19,26 +20,33 @@ import { handleStats } from './commands/stats';
 import { handleExport } from './commands/export';
 import { handleComment } from './commands/comment';
 import { config } from './commands/config';
+import { handleGitHub } from './commands/github';
+import { handleCompletion } from './commands/completion';
 
 const printHelp = (includeQuit = false) => {
     console.log(chalk.bold.white('Available commands:'));
-    console.log(`  ${chalk.white('add')}      - Add a new bug entry`);
-    console.log(`  ${chalk.white('list')}     - Show the last 5 bugs`);
-    console.log(`  ${chalk.white('search')}   - Search bugs (fuzzy) by ID or text`);
-    console.log(`  ${chalk.white('edit')}     - Edit an existing bug`);
-    console.log(`  ${chalk.white('delete')}   - Delete a bug`);
-    console.log(`  ${chalk.white('resolve')}  - Toggle Open/Resolved status`);
-    console.log(`  ${chalk.white('comment')}  - Add a comment to a bug`);
-    console.log(`  ${chalk.white('stats')}    - Show bug statistics`);
-    console.log(`  ${chalk.white('tags')}     - List all tags with usage counts`);
-    console.log(`  ${chalk.white('new-tag')}  - Create a new tag`);
-    console.log(`  ${chalk.white('export')}   - Export bugs to Markdown (default: BUGS.md)`);
-    console.log(`  ${chalk.white('version')}  - Show version information`);
-    console.log(`  ${chalk.white('config')}   - View or set global configuration`);
+    console.log(`  ${chalk.white('init')}       - Initialize Bugbook in the current directory`);
+    console.log(`  ${chalk.white('add')}        - Add a new bug entry`);
+    console.log(`  ${chalk.white('list')}       - List bugs with filtering and sorting`);
+    console.log(`               Flags: --priority, --status, --tagged, --author, --sort, --order, --limit`);
+    console.log(`  ${chalk.white('search')}     - Search bugs (fuzzy) by ID or text`);
+    console.log(`  ${chalk.white('edit')}       - Edit an existing bug`);
+    console.log(`  ${chalk.white('delete')}     - Delete a bug`);
+    console.log(`  ${chalk.white('resolve')}    - Resolve/re-open bugs (supports multiple IDs and filters)`);
+    console.log(`               Flags: --all-tagged, --all-status, -y/--no-confirm`);
+    console.log(`  ${chalk.white('comment')}    - Add a comment to a bug`);
+    console.log(`  ${chalk.white('stats')}      - Show bug statistics`);
+    console.log(`  ${chalk.white('tags')}       - List all tags with usage counts`);
+    console.log(`  ${chalk.white('new-tag')}    - Create a new tag`);
+    console.log(`  ${chalk.white('export')}     - Export bugs to Markdown (default: BUGS.md)`);
+    console.log(`  ${chalk.white('version')}    - Show version information`);
+    console.log(`  ${chalk.white('config')}     - View or set global configuration`);
+    console.log(`  ${chalk.white('github')}     - GitHub Issues integration (auth, push, status)`);
+    console.log(`  ${chalk.white('completion')} - Setup shell auto-completion (install, setup, generate)`);
     if (includeQuit) {
-        console.log(`  ${chalk.white('quit')}     - Exit the application`);
+        console.log(`  ${chalk.white('quit')}       - Exit the application`);
     } else {
-        console.log(`  ${chalk.white('help')}     - Show this help menu`);
+        console.log(`  ${chalk.white('help')}       - Show this help menu`);
     }
 };
 
@@ -51,16 +59,16 @@ const executeCommand = async (command: string, argStr: string, isInteractive: bo
                 process.exit(0);
             }
             return false;
-        case 'install':
+        case 'init':
             if (!isInteractive) {
-                await handleInstall();
+                await handleInit();
             }
             return true;
         case 'add':
             await handleAdd();
             return true;
         case 'list':
-            await handleList();
+            await handleList(argStr);
             return true;
         case 'search':
             await handleSearch(argStr);
@@ -97,6 +105,14 @@ const executeCommand = async (command: string, argStr: string, isInteractive: bo
             const configArgs = argStr ? argStr.split(' ') : [];
             await config(configArgs);
             return true;
+        case 'github':
+            const githubArgs = argStr ? argStr.split(' ') : [];
+            await handleGitHub(githubArgs);
+            return true;
+        case 'completion':
+            const completionArgs = argStr ? argStr.split(' ') : [];
+            await handleCompletion(completionArgs);
+            return true;
         case 'help':
             printHelp(isInteractive);
             return true;
@@ -110,6 +126,10 @@ const executeCommand = async (command: string, argStr: string, isInteractive: bo
             return false;
     }
 };
+
+// Initialize completion handler (responds to shell completion requests)
+const completion = createCompletion();
+completion.init();
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -127,8 +147,8 @@ main();
 
 function startApp() {
     if (!fs.existsSync(BUG_DIR)) {
-        console.log(chalk.red('\nBugbook is not installed in this directory.'));
-        console.log(chalk.white('Please run "bugbook install" first to set up.\n'));
+        console.log(chalk.red('\nBugbook is not initialized in this directory.'));
+        console.log(chalk.white('Please run "bugbook init" first to set up.\n'));
         process.exit(1);
     }
 
@@ -137,7 +157,7 @@ function startApp() {
     figlet('BUGBOOK', (err, data) => {
         if (err) {
             console.log(chalk.red('Something went wrong...'));
-            console.dir(err);
+            console.error(err instanceof Error ? err.message : 'Unknown error');
             return;
         }
         console.log(chalk.white(data));

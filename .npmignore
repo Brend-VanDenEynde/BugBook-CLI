@@ -3,9 +3,12 @@ src/
 
 # Ignore dev/config files
 tsconfig.json
+tsconfig.build.json
 .git/
 .gitignore
 .bugbook/
+.claude/
+ideas/
 
 # Ignore IDE files
 .vscode/

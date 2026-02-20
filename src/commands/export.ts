@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import chalk from 'chalk';
+
 import { getBugs, Bug, ensureProjectInit } from '../utils/storage';
 
 export const handleExport = async (args: string[]) => {
@@ -25,6 +26,12 @@ export const handleExport = async (args: string[]) => {
     const outIndex = args.indexOf('--out');
     if (outIndex !== -1 && args[outIndex + 1]) {
         outputFile = args[outIndex + 1];
+    }
+
+    const resolvedOut = path.resolve(outputFile);
+    if (!resolvedOut.startsWith(process.cwd())) {
+        console.error(chalk.red('Error: Output path must be within the current directory.'));
+        return;
     }
 
     const content = generateMarkdown(bugs);
