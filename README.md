@@ -25,6 +25,12 @@
 
 ## Installation
 
+### From npm
+
+```bash
+npm install -g bugbook
+```
+
 ### From Source
 
 1.  Clone the repository:
@@ -50,7 +56,7 @@
 
 ## Usage
 
-After linking, you can run the tool directly.
+After installing, you can run the tool directly.
 
 ### 1. Initialize
 
