@@ -5,6 +5,8 @@
 ![License](https://img.shields.io/badge/license-ISC-blue.svg)
 ![TypeScript](https://img.shields.io/badge/language-TypeScript-blue.svg)
 ![Version](https://img.shields.io/badge/version-0.5.0-green.svg)
+[![npm](https://img.shields.io/npm/v/bugbook.svg)](https://www.npmjs.com/package/bugbook)
+[![npm downloads](https://img.shields.io/npm/dm/bugbook.svg)](https://www.npmjs.com/package/bugbook)
 
 ## Features
 
